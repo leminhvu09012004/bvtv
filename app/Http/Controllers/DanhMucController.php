@@ -168,7 +168,10 @@ class DanhMucController extends Controller
         $category = Category::where('slug', $slug)->firstOrFail();
         $pesticides = $category->pesticides()->orderBy('name')->get();
 
-        return view('danhmuc.chi-tiet', compact('category', 'pesticides'));
+        $mixingService = app(\App\Services\MixingCompatibilityService::class);
+        $mixingCategoryInfo = $mixingService->getIncompatibilitiesForCategory($category);
+
+        return view('danhmuc.chi-tiet', compact('category', 'pesticides', 'mixingCategoryInfo'));
     }
 
     /**

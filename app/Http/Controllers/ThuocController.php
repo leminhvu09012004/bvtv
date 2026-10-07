@@ -9,30 +9,137 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\View\View;
 
 class ThuocController extends Controller
 {
+    /**
+     * Trang tra cứu thuốc cho người dùng (Chỉ xem).
+     */
     public function index(Request $request): View
     {
         $query = Pesticide::with('category')->search($request->input('q'));
+
+        $selectedCategoryId = $request->input('category_id');
+        $selectedCategorySlug = $request->input('category');
+
+        // Khi có từ khóa tìm kiếm q: tìm trên tất cả sản phẩm, không tích hợp lọc danh mục
+        if ($request->filled('q')) {
+            $selectedCategoryId = '';
+            $selectedCategorySlug = '';
+        } else {
+            if ($request->filled('category_id')) {
+                $cat = Category::find($request->input('category_id'));
+                if ($cat) {
+                    $selectedCategorySlug = $cat->slug;
+                }
+            } elseif ($request->filled('category')) {
+                $cat = Category::where('slug', $request->input('category'))->first();
+                if ($cat) {
+                    $selectedCategoryId = (string) $cat->id;
+                }
+            }
+        }
+
+        if ($request->filled('cay_trong')) {
+            $query->where('crops', 'like', '%' . $request->input('cay_trong') . '%');
+        }
+
+        if ($request->filled('hoat_chat')) {
+            $query->where('active_ingredient', 'like', '%' . $request->input('hoat_chat') . '%');
+        }
+
+        $selectedPurpose = $request->input('muc_dich') ?? $request->input('purpose') ?? '';
+        if ($selectedPurpose && !array_key_exists($selectedPurpose, Pesticide::PURPOSES)) {
+            $selectedPurpose = '';
+        }
+
+        $allPesticides = $query->orderBy('name')->get();
+
+        // Tính số lượng sản phẩm cho từng mục đích
+        $purposeCounts = [];
+        foreach (Pesticide::PURPOSES as $k => $meta) {
+            $purposeCounts[$k] = 0;
+        }
+        foreach ($allPesticides as $p) {
+            foreach ($p->purposes as $purp) {
+                if (isset($purposeCounts[$purp])) {
+                    $purposeCounts[$purp]++;
+                }
+            }
+        }
+
+        // Nếu có lọc theo mục đích từ URL server-side
+        $pesticides = $selectedPurpose
+            ? $allPesticides->filter(fn($p) => in_array($selectedPurpose, $p->purposes))->values()
+            : $allPesticides;
+
+        $categories = Category::withCount('pesticides')->orderBy('sort_order')->get();
+        $totalPesticides = Pesticide::count();
+
+        return view('thuoc.tra-cuu', compact(
+            'pesticides',
+            'categories',
+            'totalPesticides',
+            'selectedCategoryId',
+            'selectedCategorySlug',
+            'selectedPurpose',
+            'purposeCounts'
+        ));
+    }
+
+    /**
+     * Trang quản lý thuốc cho Quản trị viên (Admin).
+     */
+    public function quanLy(Request $request): View
+    {
+        $searchBy = $request->input('search_by', 'name');
+        $query = Pesticide::with('category')->search($request->input('q'), $searchBy);
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->input('category_id'));
         }
 
+        if ($request->filled('has_image')) {
+            $hasImage = $request->input('has_image');
+            if ($hasImage === 'no') {
+                $query->where(fn($q) => $q->whereNull('image')->orWhere('image', ''));
+            } elseif ($hasImage === 'yes') {
+                $query->whereNotNull('image')->where('image', '!=', '');
+            }
+        }
+
         if ($request->filled('cay_trong')) {
-            $query->where('crops', 'like', '%'.$request->input('cay_trong').'%');
+            $query->where('crops', 'like', '%' . $request->input('cay_trong') . '%');
         }
 
         if ($request->filled('hoat_chat')) {
-            $query->where('active_ingredient', 'like', '%'.$request->input('hoat_chat').'%');
+            $query->where('active_ingredient', 'like', '%' . $request->input('hoat_chat') . '%');
         }
 
-        $pesticides = $query->orderBy('name')->paginate(20)->withQueryString();
-        $categories = Category::orderBy('sort_order')->get();
+        $sort = $request->input('sort', 'name_asc');
+        match ($sort) {
+            'name_desc' => $query->orderBy('name', 'desc'),
+            'newest' => $query->orderBy('id', 'desc'),
+            'oldest' => $query->orderBy('id', 'asc'),
+            default => $query->orderBy('name', 'asc'),
+        };
 
-        return view('thuoc.danh-sach', compact('pesticides', 'categories'));
+        $pesticides = $query->get();
+        $categories = Category::withCount('pesticides')->orderBy('sort_order')->get();
+
+        $totalCount = Pesticide::count();
+        $hasImageCount = Pesticide::whereNotNull('image')->where('image', '!=', '')->count();
+        $missingImageCount = Pesticide::where(fn($q) => $q->whereNull('image')->orWhere('image', ''))->count();
+
+        return view('thuoc.danh-sach', compact(
+            'pesticides',
+            'categories',
+            'totalCount',
+            'hasImageCount',
+            'missingImageCount'
+        ));
     }
 
     public function them(Request $request): View
@@ -51,6 +158,8 @@ class ThuocController extends Controller
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
             'active_ingredient' => ['nullable', 'string', 'max:191'],
             'concentration' => ['nullable', 'string', 'max:191'],
+            'water_volume' => ['nullable', 'string', 'max:191'],
+            'stains_fruit' => ['nullable', 'boolean'],
             'usage' => ['nullable', 'string'],
             'target' => ['nullable', 'string'],
             'crops' => ['nullable', 'string'],
@@ -61,28 +170,36 @@ class ThuocController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        $validated['stains_fruit'] = $request->boolean('stains_fruit');
+
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('pesticides', 'public');
         }
 
         $pesticide = Pesticide::create($validated);
 
-        return redirect()->route('thuoc.xem', $pesticide)
-            ->with('success', 'Đã thêm thuốc "'.$pesticide->name.'" thành công!');
+        return redirect()->route('thuoc.quan-ly')
+            ->with('success', 'Đã thêm thuốc "' . $pesticide->name . '" thành công!');
     }
 
     public function xem(Pesticide $pesticide): View
     {
-        $pesticide->load('category');
+        $pesticide->load(['category', 'diseases']);
+        $mixingService = app(\App\Services\MixingCompatibilityService::class);
+        $mixingInfo = $mixingService->getIncompatibilitiesForPesticide($pesticide);
 
-        return view('thuoc.chi-tiet', compact('pesticide'));
+        return view('thuoc.chi-tiet', compact('pesticide', 'mixingInfo'));
     }
 
-    public function sua(Pesticide $pesticide): View
+    public function sua(Request $request, Pesticide $pesticide): View
     {
         $categories = Category::orderBy('sort_order')->get();
+        $from = $request->input('from');
+        if (!$from) {
+            $from = str_contains(url()->previous(), 'quan-ly') ? 'quan-ly' : 'chi-tiet-admin';
+        }
 
-        return view('thuoc.chinh-sua', compact('pesticide', 'categories'));
+        return view('thuoc.chinh-sua', compact('pesticide', 'categories', 'from'));
     }
 
     public function capNhat(Request $request, Pesticide $pesticide): RedirectResponse
@@ -94,6 +211,8 @@ class ThuocController extends Controller
             'xoa_anh' => ['nullable', 'boolean'],
             'active_ingredient' => ['nullable', 'string', 'max:191'],
             'concentration' => ['nullable', 'string', 'max:191'],
+            'water_volume' => ['nullable', 'string', 'max:191'],
+            'stains_fruit' => ['nullable', 'boolean'],
             'usage' => ['nullable', 'string'],
             'target' => ['nullable', 'string'],
             'crops' => ['nullable', 'string'],
@@ -103,6 +222,8 @@ class ThuocController extends Controller
             'isolation_period' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        $validated['stains_fruit'] = $request->boolean('stains_fruit');
 
         if ($request->boolean('xoa_anh')) {
             if ($pesticide->image && Storage::disk('public')->exists($pesticide->image)) {
@@ -117,10 +238,38 @@ class ThuocController extends Controller
         }
 
         unset($validated['xoa_anh']);
+
+        // Đảm bảo không còn lưu variants và price (chuyển sang thuần sổ tay học tập)
+        $validated['variants'] = null;
+        $validated['price'] = null;
+
         $pesticide->update($validated);
 
-        return redirect()->route('thuoc.xem', $pesticide)
-            ->with('success', 'Đã cập nhật thuốc "'.$pesticide->name.'" thành công!');
+        $params = ['updated_id' => $pesticide->id];
+        $scrollY = $request->input('scroll_y');
+        if ($scrollY !== null && $scrollY !== '') {
+            $params['scroll_y'] = $scrollY;
+        }
+
+        // Giữ nguyên trạng thái bộ lọc của trang Quản trị sau khi lưu
+        if ($request->filled('filter_q')) {
+            $params['q'] = $request->input('filter_q');
+        }
+        if ($request->filled('filter_category_id')) {
+            $params['category_id'] = $request->input('filter_category_id');
+        }
+        if ($request->filled('filter_has_image')) {
+            $params['has_image'] = $request->input('filter_has_image');
+        }
+        if ($request->filled('filter_sort')) {
+            $params['sort'] = $request->input('filter_sort');
+        }
+        if ($request->filled('filter_search_by')) {
+            $params['search_by'] = $request->input('filter_search_by');
+        }
+
+        return redirect()->route('thuoc.quan-ly', $params)
+            ->with('success', 'Đã cập nhật thuốc "' . $pesticide->name . '" thành công!');
     }
 
     public function xoa(Pesticide $pesticide): RedirectResponse
@@ -136,21 +285,21 @@ class ThuocController extends Controller
 
         $redirect = $categorySlug
             ? redirect()->route('danhmuc.xem', $categorySlug)
-            : redirect()->route('thuoc.danh-sach');
+            : redirect()->route('thuoc.quan-ly');
 
-        return $redirect->with('success', 'Đã xóa thuốc "'.$name.'".');
+        return $redirect->with('success', 'Đã xóa thuốc "' . $name . '".');
     }
 
     /**
      * Xuất tất cả thuốc ra file CSV.
      */
-    public function xuatCSV(): Response
+    public function xuatCSV(): StreamedResponse
     {
         $pesticides = Pesticide::with('category')->orderBy('category_id')->orderBy('name')->get();
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="thuoc-bvtv-'.now()->format('Ymd').'.csv"',
+            'Content-Disposition' => 'attachment; filename="thuoc-bvtv-' . now()->format('Ymd') . '.csv"',
         ];
 
         $callback = function () use ($pesticides) {
@@ -191,6 +340,37 @@ class ThuocController extends Controller
                     $p->isolation_period ?? '',
                     $p->notes ?? '',
                 ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Xuất danh sách tên sản phẩm thành 1 cột trong file Excel/CSV.
+     */
+    public function xuatTenExcel(): StreamedResponse
+    {
+        $names = Pesticide::orderBy('name')->pluck('name');
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="danh-sach-ten-san-pham-' . now()->format('Ymd') . '.csv"',
+        ];
+
+        $callback = function () use ($names) {
+            $handle = fopen('php://output', 'w');
+
+            // BOM for UTF-8 Excel
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            // Chỉ xuất đúng 1 cột: Tên sản phẩm
+            fputcsv($handle, ['Tên sản phẩm']);
+
+            foreach ($names as $name) {
+                fputcsv($handle, [$name]);
             }
 
             fclose($handle);
@@ -242,8 +422,8 @@ class ThuocController extends Controller
             $categoryName = trim($row[1] ?? '');
             $category = $categoryMap->get($categoryName);
 
-            if (! $category) {
-                $errors[] = 'Dòng '.($imported + 2).': Không tìm thấy danh mục "'.$categoryName.'"';
+            if (!$category) {
+                $errors[] = 'Dòng ' . ($imported + 2) . ': Không tìm thấy danh mục "' . $categoryName . '"';
 
                 continue;
             }
@@ -270,10 +450,10 @@ class ThuocController extends Controller
 
         $message = "Đã import {$imported} sản phẩm thành công.";
         if ($errors) {
-            $message .= ' Lỗi: '.implode(' | ', array_slice($errors, 0, 3));
+            $message .= ' Lỗi: ' . implode(' | ', array_slice($errors, 0, 3));
         }
 
-        return redirect()->route('thuoc.danh-sach')->with('success', $message);
+        return redirect()->route('thuoc.quan-ly')->with('success', $message);
     }
 
     // =========================================================================
@@ -285,36 +465,67 @@ class ThuocController extends Controller
      */
     public function ajaxTimKiem(Request $request): JsonResponse
     {
-        $query = Pesticide::with('category')->search($request->input('q'));
+        $searchBy = $request->input('search_by', 'name');
+        $query = Pesticide::with('category')->search($request->input('q'), $searchBy);
 
+        // Lọc theo danh mục (kết hợp được với từ khóa q)
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->input('category_id'));
+        } elseif ($request->filled('category')) {
+            $cat = Category::where('slug', $request->input('category'))->first();
+            if ($cat) {
+                $query->where('category_id', $cat->id);
+            }
+        }
+
+        // Lọc theo trạng thái hình ảnh
+        if ($request->filled('has_image')) {
+            $hasImage = $request->input('has_image');
+            if ($hasImage === 'no') {
+                $query->where(fn($q) => $q->whereNull('image')->orWhere('image', ''));
+            } elseif ($hasImage === 'yes') {
+                $query->whereNotNull('image')->where('image', '!=', '');
+            }
         }
 
         if ($request->filled('cay_trong')) {
-            $query->where('crops', 'like', '%'.$request->input('cay_trong').'%');
+            $query->where('crops', 'like', '%' . $request->input('cay_trong') . '%');
         }
 
         if ($request->filled('hoat_chat')) {
-            $query->where('active_ingredient', 'like', '%'.$request->input('hoat_chat').'%');
+            $query->where('active_ingredient', 'like', '%' . $request->input('hoat_chat') . '%');
         }
 
-        $results = $query->orderBy('name')
-            ->limit(50)
+        // Sắp xếp
+        $sort = $request->input('sort', 'name_asc');
+        match ($sort) {
+            'name_desc' => $query->orderBy('name', 'desc'),
+            'newest' => $query->orderBy('id', 'desc'),
+            'oldest' => $query->orderBy('id', 'asc'),
+            default => $query->orderBy('name', 'asc'),
+        };
+
+        $results = $query
             ->get()
-            ->map(fn (Pesticide $p) => [
+            ->map(fn(Pesticide $p) => [
                 'id' => $p->id,
                 'ten' => $p->name,
+                'image' => $p->image,
                 'image_url' => $p->image_url,
+                'variants' => $p->formatted_variants,
+                'price' => $p->price,
+                'formatted_price' => $p->formatted_price,
+                'price_range' => $p->price_range,
                 'hoat_chat' => $p->active_ingredient,
                 'ham_luong' => $p->concentration,
+                'water_volume' => $p->water_volume,
                 'cong_dung' => $p->usage,
                 'cay_trong' => $p->crops,
                 'danh_muc' => $p->category?->name,
                 'danh_muc_emoji' => $p->category?->emoji,
                 'danh_muc_slug' => $p->category?->slug,
-                'url_xem' => route('thuoc.xem', $p),
-                'url_sua' => route('thuoc.sua', $p),
+                'url_xem' => route('thuoc.xem', [$p, 'admin' => 1]),
+                'url_sua' => route('thuoc.sua', [$p, 'from' => 'quan-ly']),
                 'url_xoa' => route('ajax.xoa', $p),
             ]);
 
@@ -333,6 +544,8 @@ class ThuocController extends Controller
             'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:191'],
             'active_ingredient' => ['nullable', 'string', 'max:191'],
+            'concentration' => ['nullable', 'string', 'max:191'],
+            'water_volume' => ['nullable', 'string', 'max:191'],
             'usage' => ['nullable', 'string'],
             'crops' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
@@ -343,7 +556,7 @@ class ThuocController extends Controller
 
         return response()->json([
             'success' => true,
-            'thong_bao' => 'Đã thêm thuốc "'.$pesticide->name.'" thành công!',
+            'thong_bao' => 'Đã thêm thuốc "' . $pesticide->name . '" thành công!',
             'thuoc' => [
                 'id' => $pesticide->id,
                 'ten' => $pesticide->name,
@@ -376,7 +589,7 @@ class ThuocController extends Controller
 
         return response()->json([
             'success' => true,
-            'thong_bao' => 'Đã xóa thuốc "'.$name.'".',
+            'thong_bao' => 'Đã xóa thuốc "' . $name . '".',
         ]);
     }
 

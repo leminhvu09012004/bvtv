@@ -2,15 +2,17 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
-     * A basic test example.
+     * Trang chủ hoạt động bình thường.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_trang_chu_tra_ve_200(): void
     {
         $response = $this->get('/');
 

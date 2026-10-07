@@ -4,7 +4,11 @@
     <nav class="text-sm text-gray-500 mb-4 flex items-center gap-1.5 flex-wrap">
         <a href="{{ route('home') }}" class="hover:text-green-600">Trang chủ</a>
         <span>/</span>
-        <a href="{{ route('thuoc.xem', $pesticide) }}" class="hover:text-green-600">{{ $pesticide->name }}</a>
+        @if(($from ?? request('from')) === 'quan-ly')
+            <a href="{{ route('thuoc.quan-ly') }}" class="hover:text-green-600">Quản lý thuốc</a>
+        @else
+            <a href="{{ route('thuoc.xem', [$pesticide, 'admin' => 1]) }}" class="hover:text-green-600">{{ $pesticide->name }}</a>
+        @endif
         <span>/</span>
         <span class="text-gray-800 font-medium">Chỉnh sửa</span>
     </nav>
@@ -14,6 +18,14 @@
     <form action="{{ route('thuoc.cap-nhat', $pesticide) }}" method="POST" enctype="multipart/form-data" class="space-y-5">
         @csrf
         @method('PUT')
+        <input type="hidden" name="from" value="{{ old('from', $from ?? request('from', 'quan-ly')) }}">
+        <input type="hidden" name="scroll_y" id="input-scroll-y" value="{{ old('scroll_y', request('scroll_y')) }}">
+        <input type="hidden" name="filter_q" id="input-filter-q" value="{{ old('filter_q', request('filter_q')) }}">
+        <input type="hidden" name="filter_search_by" id="input-filter-search-by" value="{{ old('filter_search_by', request('filter_search_by')) }}">
+        <input type="hidden" name="filter_category_id" id="input-filter-category-id" value="{{ old('filter_category_id', request('filter_category_id')) }}">
+        <input type="hidden" name="filter_has_image" id="input-filter-has-image" value="{{ old('filter_has_image', request('filter_has_image')) }}">
+        <input type="hidden" name="filter_sort" id="input-filter-sort" value="{{ old('filter_sort', request('filter_sort')) }}">
+
 
         <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
             <h2 class="font-semibold text-gray-800 text-sm uppercase tracking-wide">Thông tin chính</h2>
@@ -97,20 +109,21 @@
                 >{{ old('usage', $pesticide->usage) }}</textarea>
             </div>
 
-            <div>
-                <label for="crops" class="block text-sm font-medium text-gray-700 mb-1">Cây trồng sử dụng</label>
-                <input type="text" id="crops" name="crops" value="{{ old('crops', $pesticide->crops) }}"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                    <span class="text-xs text-gray-400 self-center">Chọn nhanh:</span>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Sầu riêng')" class="text-xs px-2.5 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-colors font-medium">+ Sầu riêng</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Cà phê')" class="text-xs px-2.5 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors font-medium">+ Cà phê</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Hồ tiêu')" class="text-xs px-2.5 py-1 rounded-md bg-green-50 hover:bg-green-100 text-green-800 border border-green-200 transition-colors font-medium">+ Hồ tiêu</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Chanh dây')" class="text-xs px-2.5 py-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition-colors font-medium">+ Chanh dây</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Bơ')" class="text-xs px-2.5 py-1 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 transition-colors font-medium">+ Bơ</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Mắc ca')" class="text-xs px-2.5 py-1 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 transition-colors font-medium">+ Mắc ca</button>
+
+            <div class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-start gap-2.5">
+                <input type="checkbox" id="stains_fruit" name="stains_fruit" value="1" {{ old('stains_fruit', $pesticide->stains_fruit) ? 'checked' : '' }}
+                    class="mt-0.5 w-4 h-4 text-amber-600 rounded border-gray-300 focus:ring-amber-500 cursor-pointer">
+                <div>
+                    <label for="stains_fruit" class="text-sm font-semibold text-amber-950 cursor-pointer flex items-center gap-1.5">
+                        <span>🎨</span> Có thể dính màu vào trái
+                    </label>
+                    <p class="text-xs text-amber-800 mt-0.5">
+                        Tích chọn nếu thuốc có màu đậm (Mancozeb xanh, Đồng đỏ, bột WP váng kẽm...) dễ bám dính vệt màu lên vỏ trái khi phun.
+                    </p>
                 </div>
             </div>
+
+
 
             <div>
                 <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Ghi chú / Kinh nghiệm thực tế</label>
@@ -119,6 +132,7 @@
                 >{{ old('notes', $pesticide->notes) }}</textarea>
             </div>
         </div>
+
 
         <!-- Thông tin bổ sung -->
         <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
@@ -132,8 +146,14 @@
             <div id="truong-nang-cao" class="border-t border-gray-100 px-5 pb-5 pt-4 space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="concentration" class="block text-sm font-medium text-gray-700 mb-1">Hàm lượng</label>
+                        <label for="concentration" class="block text-sm font-medium text-gray-700 mb-1">Hàm lượng / Quy cách</label>
                         <input type="text" id="concentration" name="concentration" value="{{ old('concentration', $pesticide->concentration) }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="water_volume" class="block text-sm font-medium text-gray-700 mb-1">💧 Lượng nước pha khuyến cáo</label>
+                        <input type="text" id="water_volume" name="water_volume" value="{{ old('water_volume', $pesticide->water_volume) }}"
+                            placeholder="Ví dụ: 400 - 500 lít nước (2 phuy)"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
@@ -156,11 +176,7 @@
                         <input type="text" id="manufacturer" name="manufacturer" value="{{ old('manufacturer', $pesticide->manufacturer) }}"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
                     </div>
-                    <div>
-                        <label for="registration_number" class="block text-sm font-medium text-gray-700 mb-1">Số đăng ký</label>
-                        <input type="text" id="registration_number" name="registration_number" value="{{ old('registration_number', $pesticide->registration_number) }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -169,7 +185,16 @@
             <button type="submit" class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors">
                 💾 Lưu thay đổi
             </button>
-            <a href="{{ route('thuoc.xem', $pesticide) }}"
+            @php
+                $cancelParams = ['updated_id' => $pesticide->id];
+                if (request('filter_q')) $cancelParams['q'] = request('filter_q');
+                if (request('filter_category_id')) $cancelParams['category_id'] = request('filter_category_id');
+                if (request('filter_has_image')) $cancelParams['has_image'] = request('filter_has_image');
+                if (request('filter_sort')) $cancelParams['sort'] = request('filter_sort');
+                if (request('scroll_y')) $cancelParams['scroll_y'] = request('scroll_y');
+            @endphp
+            <a id="btn-huy-chinh-sua"
+               href="{{ ($from ?? request('from', 'quan-ly')) === 'quan-ly' ? route('thuoc.quan-ly', $cancelParams) : route('thuoc.xem', [$pesticide, 'admin' => 1]) }}"
                class="flex-1 sm:flex-none text-center border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg text-sm font-medium transition-colors">
                 Hủy
             </a>
@@ -178,6 +203,59 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const scrollInput = document.getElementById('input-scroll-y');
+        let savedY = null;
+        if (scrollInput) {
+            if (!scrollInput.value || scrollInput.value === '0') {
+                savedY = sessionStorage.getItem('bvtv_quan_ly_scroll');
+                if (savedY) {
+                    scrollInput.value = savedY;
+                }
+            } else {
+                savedY = scrollInput.value;
+            }
+        }
+
+        const btnHuy = document.getElementById('btn-huy-chinh-sua');
+        if (btnHuy && savedY) {
+            try {
+                const u = new URL(btnHuy.href, window.location.origin);
+                u.searchParams.set('scroll_y', savedY);
+                btnHuy.href = u.toString();
+            } catch(e) {}
+        }
+
+        // Tự động khôi phục bộ lọc từ sessionStorage nếu URL chưa có
+        try {
+            const savedFilters = sessionStorage.getItem('bvtv_admin_filters');
+            if (savedFilters) {
+                const f = JSON.parse(savedFilters);
+                const qEl = document.getElementById('input-filter-q');
+                const scopeEl = document.getElementById('input-filter-search-by');
+                const catEl = document.getElementById('input-filter-category-id');
+                const imgEl = document.getElementById('input-filter-has-image');
+                const sortEl = document.getElementById('input-filter-sort');
+
+                if (qEl && !qEl.value && f.q) qEl.value = f.q;
+                if (scopeEl && !scopeEl.value && f.search_by) scopeEl.value = f.search_by;
+                if (catEl && !catEl.value && f.category_id) catEl.value = f.category_id;
+                if (imgEl && !imgEl.value && f.has_image) imgEl.value = f.has_image;
+                if (sortEl && !sortEl.value && f.sort && f.sort !== 'name_asc') sortEl.value = f.sort;
+
+                if (btnHuy) {
+                    const hu = new URL(btnHuy.href, window.location.origin);
+                    if (f.q && !hu.searchParams.has('q')) hu.searchParams.set('q', f.q);
+                    if (f.search_by && f.search_by !== 'name' && !hu.searchParams.has('search_by')) hu.searchParams.set('search_by', f.search_by);
+                    if (f.category_id && !hu.searchParams.has('category_id')) hu.searchParams.set('category_id', f.category_id);
+                    if (f.has_image && !hu.searchParams.has('has_image')) hu.searchParams.set('has_image', f.has_image);
+                    if (f.sort && f.sort !== 'name_asc' && !hu.searchParams.has('sort')) hu.searchParams.set('sort', f.sort);
+                    btnHuy.href = hu.toString();
+                }
+            }
+        } catch(e) {}
+
+
     function batTatNangCao() {
         const truong = document.getElementById('truong-nang-cao');
         const muiTen = document.getElementById('mui-ten');

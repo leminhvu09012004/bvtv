@@ -4,7 +4,7 @@
     <nav class="text-sm text-gray-500 mb-4 flex items-center gap-1.5 flex-wrap">
         <a href="{{ route('home') }}" class="hover:text-green-600">Trang chủ</a>
         <span>/</span>
-        <a href="{{ route('thuoc.danh-sach') }}" class="hover:text-green-600">Tất cả thuốc</a>
+        <a href="{{ route('thuoc.quan-ly') }}" class="hover:text-green-600">Quản lý thuốc</a>
         <span>/</span>
         <span class="text-gray-800 font-medium">Thêm mới</span>
     </nav>
@@ -86,19 +86,17 @@
                 >{{ old('usage') }}</textarea>
             </div>
 
-            <div>
-                <label for="crops" class="block text-sm font-medium text-gray-700 mb-1">Cây trồng sử dụng</label>
-                <input type="text" id="crops" name="crops" value="{{ old('crops') }}"
-                    placeholder="Ví dụ: Sầu riêng, Cà phê"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                    <span class="text-xs text-gray-400 self-center">Chọn nhanh:</span>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Sầu riêng')" class="text-xs px-2.5 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-colors font-medium">+ Sầu riêng</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Cà phê')" class="text-xs px-2.5 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors font-medium">+ Cà phê</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Hồ tiêu')" class="text-xs px-2.5 py-1 rounded-md bg-green-50 hover:bg-green-100 text-green-800 border border-green-200 transition-colors font-medium">+ Hồ tiêu</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Chanh dây')" class="text-xs px-2.5 py-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition-colors font-medium">+ Chanh dây</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Bơ')" class="text-xs px-2.5 py-1 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 transition-colors font-medium">+ Bơ</button>
-                    <button type="button" onclick="themTagCayTrong('crops', 'Mắc ca')" class="text-xs px-2.5 py-1 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 transition-colors font-medium">+ Mắc ca</button>
+
+            <div class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-start gap-2.5">
+                <input type="checkbox" id="stains_fruit" name="stains_fruit" value="1" {{ old('stains_fruit') ? 'checked' : '' }}
+                    class="mt-0.5 w-4 h-4 text-amber-600 rounded border-gray-300 focus:ring-amber-500 cursor-pointer">
+                <div>
+                    <label for="stains_fruit" class="text-sm font-semibold text-amber-950 cursor-pointer flex items-center gap-1.5">
+                        <span>🎨</span> Có thể dính màu vào trái
+                    </label>
+                    <p class="text-xs text-amber-800 mt-0.5">
+                        Tích chọn nếu thuốc có màu đậm (Mancozeb xanh, Đồng đỏ, bột WP váng kẽm...) dễ bám dính vệt màu lên vỏ trái khi phun.
+                    </p>
                 </div>
             </div>
 
@@ -123,9 +121,15 @@
             <div id="truong-nang-cao" class="hidden border-t border-gray-100 px-5 pb-5 pt-4 space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="concentration" class="block text-sm font-medium text-gray-700 mb-1">Hàm lượng</label>
+                        <label for="concentration" class="block text-sm font-medium text-gray-700 mb-1">Hàm lượng / Quy cách</label>
                         <input type="text" id="concentration" name="concentration" value="{{ old('concentration') }}"
-                            placeholder="Ví dụ: 25%"
+                            placeholder="Ví dụ: 400g/l (Chai 1 lít)"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="water_volume" class="block text-sm font-medium text-gray-700 mb-1">💧 Lượng nước pha khuyến cáo</label>
+                        <input type="text" id="water_volume" name="water_volume" value="{{ old('water_volume') }}"
+                            placeholder="Ví dụ: 400 - 500 lít nước (2 phuy)"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
@@ -152,12 +156,7 @@
                             placeholder="Ví dụ: Syngenta"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
                     </div>
-                    <div>
-                        <label for="registration_number" class="block text-sm font-medium text-gray-700 mb-1">Số đăng ký</label>
-                        <input type="text" id="registration_number" name="registration_number" value="{{ old('registration_number') }}"
-                            placeholder="Số đăng ký lưu hành"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -168,7 +167,7 @@
                 class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors">
                 💾 Lưu thuốc
             </button>
-            <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('thuoc.danh-sach') }}"
+            <a href="{{ route('thuoc.quan-ly') }}"
                class="flex-1 sm:flex-none text-center border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg text-sm font-medium transition-colors">
                 Hủy
             </a>
@@ -217,7 +216,7 @@
         document.getElementById('image-preview-wrapper').classList.add('hidden');
     }
 
-    @if(old('concentration') || old('form_type') || old('target') || old('isolation_period') || old('manufacturer') || old('registration_number'))
+    @if(old('concentration') || old('form_type') || old('target') || old('isolation_period') || old('manufacturer'))
         document.addEventListener('DOMContentLoaded', () => batTatNangCao());
     @endif
 </script>

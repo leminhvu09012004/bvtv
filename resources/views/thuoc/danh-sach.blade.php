@@ -1,34 +1,70 @@
-<x-layouts.app title="Tất cả thuốc">
-<div class="px-4 py-6 lg:px-8 lg:py-8">
+<x-layouts.app title="Quản lý thuốc (Admin)">
+<div class="px-4 py-4 lg:px-6 lg:py-5">
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">💊 Tất cả thuốc BVTV</h1>
-            <p class="text-sm text-gray-500 mt-0.5" id="so-luong-ket-qua">{{ $pesticides->total() }} sản phẩm tìm thấy</p>
+            <div class="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-semibold mb-1">
+                ⚙️ Khu vực Quản trị
+            </div>
+            <h1 class="text-xl font-bold text-gray-900">Quản lý thuốc BVTV</h1>
+            <p class="text-xs text-gray-500 mt-0.5" id="so-luong-ket-qua">
+                @php
+                    $hasActiveFilter = request()->filled('q') || request()->filled('category_id') || request()->filled('has_image') || (request('sort') && request('sort') !== 'name_asc');
+                @endphp
+                @if($hasActiveFilter)
+                    <span class="font-bold text-emerald-700">{{ $pesticides->count() }}</span> / {{ $totalCount ?? $pesticides->count() }} sản phẩm tìm thấy • <span class="text-gray-400 text-[11px]">Đang áp dụng bộ lọc</span>
+                @else
+                    <span id="so-luong-so" class="font-semibold text-gray-800">{{ $pesticides->count() }}</span> sản phẩm
+                    @if(isset($missingImageCount) && $missingImageCount > 0)
+                        • <span class="text-amber-600 font-medium">⚠️ {{ $missingImageCount }} chưa có hình</span>
+                    @endif
+                    • Quản lý thêm, sửa, xóa
+                @endif
+            </p>
         </div>
-        <div class="flex gap-2 self-start sm:self-auto">
+        <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <a href="{{ route('thuoc.tra-cuu') }}"
+               class="inline-flex items-center gap-1.5 border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                👁️ Xem giao diện Người dùng
+            </a>
             <button id="quick-add-btn"
-                class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+                class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer">
                 ➕ Thêm nhanh
             </button>
+            <a href="{{ route('thuoc.xuat-ten') }}"
+               class="inline-flex items-center gap-1.5 border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-800 px-3 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap shadow-2xs"
+               title="Tải về file Excel chứa 1 cột tên sản phẩm">
+                📊 Xuất 1 cột tên Excel
+            </a>
             <a href="{{ route('thuoc.them') }}"
-               class="inline-flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+               class="inline-flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-700 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
                 📋 Thêm đầy đủ
             </a>
         </div>
     </div>
 
-    <!-- Tìm kiếm & Lọc AJAX -->
-    <div class="mb-5 space-y-3">
+    <!-- Tìm kiếm & Lọc AJAX nâng cao -->
+    <div class="mb-5 space-y-3 bg-white p-3.5 sm:p-4 rounded-xl border border-gray-200 shadow-2xs">
         <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
             <input
                 type="text"
                 id="live-search-input"
                 data-url="{{ route('ajax.tim-kiem') }}"
-                placeholder="🔍 Gõ để tìm ngay — tên thuốc, hoạt chất, công dụng, cây trồng..."
-                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                value="{{ request('q') }}"
+                placeholder="{{ request('search_by') === 'active_ingredient' ? '🔍 Tìm kiếm theo hoạt chất (Ví dụ: Azoxystrobin, Mancozeb, Cypermethrin)...' : (request('search_by') === 'all' ? '🔍 Tìm tất cả: Tên thuốc, hoạt chất, quy cách, công dụng, ID (#54)...' : '🔍 Tìm kiếm theo tên thuốc (Ví dụ: 15-15-15, Kẽm EDTA, Huỳnh Lâm, Mancozeb, #54)...') }}"
+                class="w-full pl-10 pr-16 py-2.5 bg-gray-50/70 hover:bg-white focus:bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all shadow-2xs"
                 autocomplete="off"
             >
+            <!-- Nút xóa nhanh text trong ô tìm kiếm -->
+            <button type="button" id="clear-search-input"
+                    style="{{ request('q') ? 'display: inline-flex;' : 'display: none;' }}"
+                    class="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    title="Xóa tìm kiếm (Phím Esc)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
             <div id="search-loading" class="hidden absolute right-3 top-1/2 -translate-y-1/2">
                 <svg class="animate-spin h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -37,59 +73,71 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap gap-2">
-            <select id="filter-danh-muc" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
-                <option value="">Tất cả danh mục</option>
-                @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}">{{ $cat->emoji }} {{ $cat->name }}</option>
-                @endforeach
-            </select>
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Dropdown Phạm vi tìm kiếm -->
+                <div class="relative inline-block">
+                    <select id="filter-pham-vi" class="border border-emerald-300 bg-emerald-50/70 text-emerald-800 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-green-500 shadow-2xs cursor-pointer hover:bg-emerald-100 transition-colors">
+                        <option value="name" {{ request('search_by', 'name') === 'name' ? 'selected' : '' }}>🔤 Theo tên thuốc</option>
+                        <option value="active_ingredient" {{ request('search_by') === 'active_ingredient' ? 'selected' : '' }}>🧪 Theo hoạt chất</option>
+                        <option value="all" {{ request('search_by') === 'all' ? 'selected' : '' }}>🌐 Tìm tất cả (tên, hoạt chất, công dụng)</option>
+                    </select>
+                </div>
 
-            <input type="text" id="filter-cay-trong" value="{{ request('cay_trong') }}" placeholder="Lọc cây trồng..."
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-36">
+                <!-- Dropdown Danh mục -->
+                <div class="relative inline-block">
+                    <select id="filter-danh-muc" class="border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-700 shadow-2xs cursor-pointer hover:border-gray-400 transition-colors">
+                        <option value="">📂 Tất cả danh mục ({{ $totalCount ?? $pesticides->count() }})</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ (string)request('category_id') === (string)$cat->id ? 'selected' : '' }}>
+                                {{ $cat->emoji }} {{ $cat->name }} ({{ $cat->pesticides_count ?? 0 }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-            <input type="text" id="filter-hoat-chat" placeholder="Lọc hoạt chất..."
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-36">
+                <!-- Dropdown Lọc ảnh -->
+                <div class="relative inline-block">
+                    <select id="filter-hinh-anh" class="border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-700 shadow-2xs cursor-pointer hover:border-gray-400 transition-colors">
+                        <option value="">🖼️ Tất cả ảnh ({{ $totalCount ?? $pesticides->count() }})</option>
+                        <option value="no" class="text-amber-700 font-semibold" {{ request('has_image') === 'no' ? 'selected' : '' }}>⚠️ Chưa có ảnh ({{ $missingImageCount ?? 0 }})</option>
+                        <option value="yes" class="text-emerald-700" {{ request('has_image') === 'yes' ? 'selected' : '' }}>✅ Đã có ảnh ({{ $hasImageCount ?? 0 }})</option>
+                    </select>
+                </div>
 
-            <button id="xoa-bo-loc"
-                class="border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-2 rounded-lg text-sm transition-colors">
-                ✕ Xóa bộ lọc
-            </button>
+                <!-- Dropdown Sắp xếp -->
+                <div class="relative inline-block">
+                    <select id="filter-sap-xep" class="border border-gray-300 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-700 shadow-2xs cursor-pointer hover:border-gray-400 transition-colors">
+                        <option value="name_asc" {{ request('sort', 'name_asc') === 'name_asc' ? 'selected' : '' }}>🔤 Tên: A → Z</option>
+                        <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>🔤 Tên: Z → A</option>
+                        <option value="newest" {{ request('sort') === 'newest' ? 'selected' : '' }}>🕒 Mới nhất trước</option>
+                        <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>🔢 ID tăng dần</option>
+                    </select>
+                </div>
+
+                <!-- Nút Xóa bộ lọc (Chỉ hiện khi có lọc) -->
+                <button id="xoa-bo-loc"
+                    type="button"
+                    style="display: none;"
+                    class="inline-flex items-center gap-1 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <span>Xóa bộ lọc</span>
+                </button>
+            </div>
+
+            <!-- Phím tắt trợ giúp nhanh -->
+            <div class="hidden lg:flex items-center gap-1.5 text-xs text-gray-400 select-none">
+                <span class="bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded text-[11px] font-mono text-gray-500">Esc</span> để xóa ô tìm kiếm
+            </div>
+        </div>
+
+        <!-- Thanh thông báo kết quả lọc động (Chỉ hiện khi có lọc) -->
+        <div id="filter-active-tags" style="display: none;" class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-gray-100 text-xs text-gray-600">
+            <span class="font-medium text-gray-500">Đang lọc:</span>
+            <div id="filter-tag-chips" class="flex flex-wrap items-center gap-1.5"></div>
         </div>
     </div>
 
-    <!-- Lọc nhanh theo cây trồng Tây Nguyên -->
-    <div class="flex items-center gap-1.5 flex-wrap mb-4 bg-white border border-gray-200 rounded-xl p-2.5 shadow-xs">
-        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1">Cây Tây Nguyên:</span>
-        <button type="button" onclick="locNhanhCayTrong('')"
-            class="filter-crop-pill px-3 py-1 rounded-full text-xs font-medium {{ request('cay_trong') ? 'bg-gray-100 text-gray-700 hover:bg-green-100' : 'bg-green-700 text-white' }} transition-colors" data-crop="">
-            Tất cả
-        </button>
-        <button type="button" onclick="locNhanhCayTrong('Sầu riêng')"
-            class="filter-crop-pill px-3 py-1 rounded-full text-xs font-medium {{ request('cay_trong') == 'Sầu riêng' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-100' }} transition-colors" data-crop="Sầu riêng">
-            🍈 Sầu riêng
-        </button>
-        <button type="button" onclick="locNhanhCayTrong('Cà phê')"
-            class="filter-crop-pill px-3 py-1 rounded-full text-xs font-medium {{ request('cay_trong') == 'Cà phê' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-100' }} transition-colors" data-crop="Cà phê">
-            ☕ Cà phê
-        </button>
-        <button type="button" onclick="locNhanhCayTrong('Hồ tiêu')"
-            class="filter-crop-pill px-3 py-1 rounded-full text-xs font-medium {{ request('cay_trong') == 'Hồ tiêu' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-100' }} transition-colors" data-crop="Hồ tiêu">
-            🌿 Hồ tiêu
-        </button>
-        <button type="button" onclick="locNhanhCayTrong('Chanh dây')"
-            class="filter-crop-pill px-3 py-1 rounded-full text-xs font-medium {{ request('cay_trong') == 'Chanh dây' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-100' }} transition-colors" data-crop="Chanh dây">
-            🟣 Chanh dây
-        </button>
-        <button type="button" onclick="locNhanhCayTrong('Bơ')"
-            class="filter-crop-pill px-3 py-1 rounded-full text-xs font-medium {{ request('cay_trong') == 'Bơ' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-100' }} transition-colors" data-crop="Bơ">
-            🥑 Bơ
-        </button>
-        <button type="button" onclick="locNhanhCayTrong('Mắc ca')"
-            class="filter-crop-pill px-3 py-1 rounded-full text-xs font-medium {{ request('cay_trong') == 'Mắc ca' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-100' }} transition-colors" data-crop="Mắc ca">
-            🌰 Mắc ca
-        </button>
-    </div>
 
     <!-- Empty state (ẩn khi có kết quả) -->
     <div id="empty-state" class="hidden bg-white border border-dashed border-gray-300 rounded-xl py-16 text-center">
@@ -139,13 +187,11 @@
                         <th class="px-3 py-3 text-center w-10">
                             <input type="checkbox" id="chon-tat-ca" title="Chọn tất cả" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer">
                         </th>
-                        <th class="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10">STT</th>
-                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tên thuốc</th>
-                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Danh mục</th>
-                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Hoạt chất</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[340px] md:min-w-[380px]">Tên thuốc</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell whitespace-nowrap">Danh mục</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell whitespace-nowrap">Hoạt chất</th>
                         <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Công dụng</th>
-                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Cây trồng</th>
-                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Thao tác</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="bang-thuoc-body" class="divide-y divide-gray-100">
@@ -154,53 +200,55 @@
                             <td class="px-3 py-3 text-center w-10">
                                 <input type="checkbox" class="chon-thuoc w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer" value="{{ $pesticide->id }}">
                             </td>
-                            <td class="px-3 py-3 text-gray-400 text-xs">{{ $pesticides->firstItem() + $i }}</td>
-                            <td class="px-4 py-3">
-                                <div class="flex items-center gap-2.5">
+                            <td class="px-4 py-3 min-w-[340px] md:min-w-[380px]">
+                                <div class="flex items-center gap-3">
                                     @if($pesticide->image_url)
-                                        <div class="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-200 shrink-0 cursor-pointer shadow-xs hover:ring-2 hover:ring-green-500 transition-all group"
-                                             onclick="moModalAnh('{{ $pesticide->image_url }}', '{{ addslashes($pesticide->name) }}')"
+                                        <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 shrink-0 cursor-pointer shadow-xs hover:ring-2 hover:ring-green-500 transition-all group bg-white"
+                                             onclick="moModalAnh(document.getElementById('admin-img-{{ $pesticide->id }}')?.src || '{{ $pesticide->image_url }}', '{{ addslashes($pesticide->name) }}')"
                                              title="Nhấp để xem ảnh lớn">
-                                            <img src="{{ $pesticide->image_url }}" alt="{{ $pesticide->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                                            <img id="admin-img-{{ $pesticide->id }}" src="{{ $pesticide->image_url }}" alt="{{ $pesticide->name }}" class="w-full h-full object-contain group-hover:scale-105 transition-all">
                                         </div>
                                     @else
-                                        <div class="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-base shrink-0 text-gray-400 select-none">
-                                            {{ $pesticide->category->emoji ?? '💊' }}
-                                        </div>
+                                        <div class="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 shrink-0 flex items-center justify-center text-lg">💊</div>
                                     @endif
                                     <div class="min-w-0 flex-1">
-                                        <a href="{{ route('thuoc.xem', $pesticide) }}" class="font-medium text-green-700 hover:underline">
+                                        <a href="{{ route('thuoc.xem', [$pesticide, 'admin' => 1]) }}" class="font-medium text-green-700 hover:underline">
                                             {{ $pesticide->name }}
                                         </a>
-                                        @if($pesticide->concentration)
-                                            <span class="ml-1 text-xs text-gray-400 font-mono">{{ $pesticide->concentration }}</span>
-                                        @endif
+                                        <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                            @if($pesticide->concentration)
+                                                <span class="text-xs text-gray-500 font-mono">{{ $pesticide->concentration }}</span>
+                                            @endif
+                                            @if($pesticide->water_volume)
+                                                <span class="text-[11px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/60 inline-flex items-center gap-0.5" title="Lượng nước pha khuyến cáo">
+                                                    💧 Pha: {{ $pesticide->water_volume }}
+                                                </span>
+                                            @endif
+                                        </div>
+
                                         @if($pesticide->active_ingredient)
                                             <div class="text-xs text-gray-500 mt-0.5 md:hidden truncate">{{ $pesticide->active_ingredient }}</div>
                                         @endif
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 hidden sm:table-cell">
+                            <td class="px-4 py-3 hidden sm:table-cell whitespace-nowrap">
                                 @if($pesticide->category)
                                     <a href="{{ route('danhmuc.xem', $pesticide->category->slug) }}"
-                                       class="inline-flex items-center gap-1 text-xs bg-gray-100 hover:bg-green-100 text-gray-600 hover:text-green-700 px-2 py-0.5 rounded-full transition-colors">
-                                        {{ $pesticide->category->emoji }} {{ $pesticide->category->name }}
+                                       class="inline-flex items-center gap-1 text-xs bg-gray-100 hover:bg-green-100 text-gray-600 hover:text-green-700 px-2.5 py-1 rounded-full transition-colors whitespace-nowrap font-medium">
+                                        {{ $pesticide->category->name }}
                                     </a>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-gray-600 hidden md:table-cell">{{ $pesticide->active_ingredient ?? '—' }}</td>
-                            <td class="px-4 py-3 text-gray-600 hidden lg:table-cell max-w-xs">
-                                <span class="line-clamp-2">{{ $pesticide->usage ?? '—' }}</span>
-                            </td>
                             <td class="px-4 py-3 text-gray-600 hidden lg:table-cell">
-                                <span class="line-clamp-1">{{ $pesticide->crops ?? '—' }}</span>
+                                <span class="line-clamp-2">{{ $pesticide->usage ?? '—' }}</span>
                             </td>
                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-1">
-                                    <a href="{{ route('thuoc.xem', $pesticide) }}"
+                                    <a href="{{ route('thuoc.xem', [$pesticide, 'admin' => 1]) }}"
                                        class="text-xs px-2.5 py-1 rounded-md text-gray-600 hover:bg-gray-100 transition-colors">Xem</a>
-                                    <a href="{{ route('thuoc.sua', $pesticide) }}"
+                                    <a href="{{ route('thuoc.sua', [$pesticide, 'from' => 'quan-ly']) }}"
                                        class="text-xs px-2.5 py-1 rounded-md text-blue-600 hover:bg-blue-50 transition-colors">Sửa</a>
                                     <button
                                         onclick="BVTV.xacNhanXoaAjax('{{ route('ajax.xoa', $pesticide) }}', '{{ addslashes($pesticide->name) }}', this)"
@@ -215,13 +263,6 @@
             </table>
         </div>
     </div>
-
-    <!-- Phân trang (chỉ hiển thị khi không search) -->
-    @if($pesticides->hasPages())
-        <div class="mt-4" id="pagination-container">
-            {{ $pesticides->links() }}
-        </div>
-    @endif
 </div>
 
 <!-- ========================================================== -->
@@ -272,27 +313,19 @@
             </div>
 
             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">💧 Lượng nước pha</label>
+                <input type="text" name="water_volume"
+                    placeholder="Ví dụ: 400 - 500 lít (2 phuy)"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Công dụng / Trị gì</label>
                 <textarea name="usage" rows="2"
                     placeholder="Ví dụ: Trừ rầy nâu, bọ trĩ..."
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Cây trồng sử dụng</label>
-                <input type="text" id="quick-add-crops" name="crops"
-                    placeholder="Ví dụ: Sầu riêng, Cà phê"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-                <div class="flex flex-wrap gap-1 mt-1.5">
-                    <span class="text-[11px] text-gray-400 self-center">Chọn nhanh:</span>
-                    <button type="button" onclick="themTagCayTrong('quick-add-crops', 'Sầu riêng')" class="text-xs px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-colors">+ Sầu riêng</button>
-                    <button type="button" onclick="themTagCayTrong('quick-add-crops', 'Cà phê')" class="text-xs px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors">+ Cà phê</button>
-                    <button type="button" onclick="themTagCayTrong('quick-add-crops', 'Hồ tiêu')" class="text-xs px-2 py-0.5 rounded bg-green-50 hover:bg-green-100 text-green-800 border border-green-200 transition-colors">+ Hồ tiêu</button>
-                    <button type="button" onclick="themTagCayTrong('quick-add-crops', 'Chanh dây')" class="text-xs px-2 py-0.5 rounded bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition-colors">+ Chanh dây</button>
-                    <button type="button" onclick="themTagCayTrong('quick-add-crops', 'Bơ')" class="text-xs px-2 py-0.5 rounded bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 transition-colors">+ Bơ</button>
-                    <button type="button" onclick="themTagCayTrong('quick-add-crops', 'Mắc ca')" class="text-xs px-2 py-0.5 rounded bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 transition-colors">+ Mắc ca</button>
-                </div>
-            </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
@@ -317,6 +350,7 @@
 </div>
 
 <script>
+window.BVTV_TOTAL_COUNT = {{ $totalCount ?? $pesticides->count() }};
 function locNhanhCayTrong(crop) {
     const input = document.getElementById('filter-cay-trong');
     if (!input) return;
@@ -345,5 +379,122 @@ function themTagCayTrong(inputId, cropName) {
         }
     }
 }
+
+// Khôi phục vị trí thanh cuộn CHỈ KHI vừa cập nhật sản phẩm xong (có updated_id trên URL)
+document.addEventListener('DOMContentLoaded', () => {
+    // Xóa sạch session cũ để không bao giờ bị kẹt cuộn khi F5
+    try {
+        sessionStorage.removeItem('bvtv_quan_ly_last_id');
+        sessionStorage.removeItem('bvtv_quan_ly_scroll');
+    } catch(e) {}
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const updatedId = urlParams.get('updated_id');
+    const paramScroll = urlParams.get('scroll_y');
+
+    // Nếu KHÔNG có updated_id hay scroll_y trên URL: Không làm gì cả, giữ nguyên trạng thái tự nhiên
+    if (!updatedId && !paramScroll) {
+        return;
+    }
+
+    let targetY = paramScroll ? parseInt(paramScroll, 10) : 0;
+    let targetRow = null;
+
+    if (updatedId) {
+        targetRow = document.querySelector(`tr[data-id="${updatedId}"]`);
+        if (targetRow) {
+            targetRow.classList.add('bg-emerald-100/90', 'ring-2', 'ring-emerald-500', 'shadow-md', 'transition-all');
+            setTimeout(() => {
+                targetRow.classList.remove('ring-2', 'ring-emerald-500', 'shadow-md');
+            }, 3000);
+        }
+    }
+
+    const applyScroll = () => {
+        if (targetY > 0) {
+            window.scrollTo({ top: targetY, behavior: 'instant' });
+        } else if (targetRow) {
+            targetRow.scrollIntoView({ block: 'center', behavior: 'instant' });
+        }
+    };
+
+    if (targetY > 0 || targetRow) {
+        applyScroll();
+        [50, 150, 350].forEach(delay => setTimeout(applyScroll, delay));
+    }
+
+    // Xóa sạch query param trên URL để các lần F5 tiếp theo hoàn toàn bình thường
+    setTimeout(() => {
+        if (urlParams.has('updated_id') || urlParams.has('scroll_y')) {
+            urlParams.delete('updated_id');
+            urlParams.delete('scroll_y');
+            const cleanQuery = urlParams.toString() ? '?' + urlParams.toString() : '';
+            try {
+                history.replaceState(null, '', window.location.pathname + cleanQuery);
+            } catch(e) {}
+        }
+    }, 500);
+});
+
+// Gắn tọa độ cuộn VÀ các bộ lọc hiện tại vào link Sửa để khi lưu xong quay về đúng bộ lọc đó
+function layFilterHienTai() {
+    const searchInput = document.getElementById('live-search-input');
+    const filterScope = document.getElementById('filter-pham-vi');
+    const filterCat = document.getElementById('filter-danh-muc');
+    const filterImg = document.getElementById('filter-hinh-anh');
+    const filterSort = document.getElementById('filter-sap-xep');
+
+    return {
+        q: searchInput ? searchInput.value.trim() : '',
+        search_by: filterScope ? filterScope.value : 'name',
+        category_id: filterCat ? filterCat.value : '',
+        has_image: filterImg ? filterImg.value : '',
+        sort: (filterSort && filterSort.value !== 'name_asc') ? filterSort.value : ''
+    };
+}
+
+// Cập nhật href trước khi chuột nhấp hoặc chuột phải
+document.addEventListener('pointerdown', (e) => {
+    const link = e.target.closest('a[href*="/chinh-sua"]');
+    if (!link) return;
+    try {
+        const scrollY = Math.round(window.scrollY);
+        const f = layFilterHienTai();
+        const u = new URL(link.href, window.location.origin);
+        u.searchParams.set('scroll_y', String(scrollY));
+        if (f.q) u.searchParams.set('filter_q', f.q); else u.searchParams.delete('filter_q');
+        if (f.search_by && f.search_by !== 'name') u.searchParams.set('filter_search_by', f.search_by); else u.searchParams.delete('filter_search_by');
+        if (f.category_id) u.searchParams.set('filter_category_id', f.category_id); else u.searchParams.delete('filter_category_id');
+        if (f.has_image) u.searchParams.set('filter_has_image', f.has_image); else u.searchParams.delete('filter_has_image');
+        if (f.sort) u.searchParams.set('filter_sort', f.sort); else u.searchParams.delete('filter_sort');
+        link.href = u.toString();
+    } catch(err) {}
+});
+
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href*="/chinh-sua"]');
+    if (!link || link.target || e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+    e.preventDefault(); // Ngăn trình duyệt điều hướng href cũ trước khi thêm param
+
+    const scrollY = Math.round(window.scrollY);
+    const f = layFilterHienTai();
+
+    // Lưu vào sessionStorage làm phương án dự phòng 100%
+    try {
+        sessionStorage.setItem('bvtv_admin_filters', JSON.stringify(f));
+    } catch(err) {}
+
+    const u = new URL(link.href, window.location.origin);
+    u.searchParams.set('scroll_y', String(scrollY));
+    if (f.q) u.searchParams.set('filter_q', f.q); else u.searchParams.delete('filter_q');
+    if (f.search_by && f.search_by !== 'name') u.searchParams.set('filter_search_by', f.search_by); else u.searchParams.delete('filter_search_by');
+    if (f.category_id) u.searchParams.set('filter_category_id', f.category_id); else u.searchParams.delete('filter_category_id');
+    if (f.has_image) u.searchParams.set('filter_has_image', f.has_image); else u.searchParams.delete('filter_has_image');
+    if (f.sort) u.searchParams.set('filter_sort', f.sort); else u.searchParams.delete('filter_sort');
+
+    window.location.href = u.toString();
+});
+
 </script>
 </x-layouts.app>

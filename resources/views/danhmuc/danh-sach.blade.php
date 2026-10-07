@@ -1,5 +1,5 @@
 <x-layouts.app title="Quản lý danh mục">
-<div class="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl">
+<div class="px-4 py-4 lg:px-6 lg:py-5">
 
     <!-- Breadcrumb -->
     <nav class="text-sm text-gray-500 mb-4 flex items-center gap-1.5 flex-wrap">
@@ -74,7 +74,6 @@
                             </td>
                             <td class="px-4 py-3 col-name">
                                 <a href="{{ route('danhmuc.xem', $cat->slug) }}" class="font-medium text-gray-900 hover:text-green-700 flex items-center gap-2">
-                                    <span class="text-xl col-emoji">{{ $cat->emoji }}</span>
                                     <span class="col-name-text">{{ $cat->name }}</span>
                                 </a>
                             </td>
@@ -492,7 +491,6 @@ function initAjaxThemDanhMuc() {
                     </td>
                     <td class="px-4 py-3 col-name">
                         <a href="${d.url_xem}" class="font-medium text-gray-900 hover:text-green-700 flex items-center gap-2">
-                            <span class="text-xl col-emoji">${escapeHtml(d.emoji)}</span>
                             <span class="col-name-text">${escapeHtml(d.name)}</span>
                         </a>
                     </td>
@@ -570,7 +568,6 @@ function initAjaxSuaDanhMuc() {
                 const d = data.danh_muc;
                 const row = document.querySelector(`#bang-dm-body tr[data-id="${id}"]`);
                 if (row) {
-                    row.querySelector('.col-emoji').textContent = d.emoji;
                     row.querySelector('.col-name-text').textContent = d.name;
                     row.querySelector('.col-sort-order span').textContent = d.sort_order;
                     row.querySelector('.col-slug').textContent = d.slug;

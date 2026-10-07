@@ -17,7 +17,7 @@
     </div>
 
     <!-- Tìm kiếm nhanh -->
-    <form action="{{ route('thuoc.danh-sach') }}" method="GET" class="mb-6">
+    <form action="{{ route('thuoc.tra-cuu') }}" method="GET" class="mb-6">
         <div class="flex gap-2">
             <input
                 type="text"
@@ -25,81 +25,81 @@
                 placeholder="🔍 Tìm nhanh tên thuốc, hoạt chất, sâu bệnh (rầy xanh, rệp sáp, xì mủ, rỉ sắt...)"
                 class="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-xs"
             >
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg text-sm font-medium transition-colors shadow-xs">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer">
                 Tìm kiếm
             </button>
         </div>
     </form>
 
-    <!-- Cây trồng chủ lực Tây Nguyên -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between mb-3">
-            <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                <span>🌳</span> Cây trồng chủ lực Tây Nguyên
-            </h2>
-            <span class="text-xs text-gray-400">Bấm để lọc thuốc theo cây</span>
+
+    <!-- Chức năng Tra cứu (Dành cho Người dùng - Chỉ xem) -->
+    <div class="mb-5">
+        <div class="flex items-center gap-2 mb-2.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                🔍 Tra cứu (Người dùng)
+            </span>
+            <span class="text-xs text-gray-400">Xem thông tin thuốc, hoạt chất, liều lượng và phác đồ</span>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <!-- Sầu riêng -->
-            <a href="{{ route('thuoc.danh-sach', ['cay_trong' => 'Sầu riêng']) }}"
-               class="group bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 hover:border-amber-400 rounded-xl p-4 transition-all hover:shadow-md">
-                <div class="text-3xl mb-2">🍈</div>
-                <div class="font-bold text-gray-900 group-hover:text-amber-700 transition-colors">Sầu riêng</div>
-                <div class="text-xs text-gray-500 mt-0.5 line-clamp-1">Rầy xanh, rệp sáp, xì mủ, thán thư</div>
-                <div class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded-full">
-                    {{ $cropStats['sau_rieng'] }} thuốc
-                </div>
+        <div class="flex flex-wrap gap-2.5">
+            <a href="{{ route('thuoc.tra-cuu') }}"
+               class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-xs">
+                <span>🔍</span> Tra cứu thuốc
             </a>
-
-            <!-- Cà phê -->
-            <a href="{{ route('thuoc.danh-sach', ['cay_trong' => 'Cà phê']) }}"
-               class="group bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 hover:border-emerald-400 rounded-xl p-4 transition-all hover:shadow-md">
-                <div class="text-3xl mb-2">☕</div>
-                <div class="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">Cà phê</div>
-                <div class="text-xs text-gray-500 mt-0.5 line-clamp-1">Rỉ sắt, rệp sáp, mọt cành, ve sầu</div>
-                <div class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full">
-                    {{ $cropStats['ca_phe'] }} thuốc
-                </div>
+            <a href="{{ route('hoatchat.index') }}"
+               class="inline-flex items-center gap-2 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 hover:border-emerald-400 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs">
+                <span>⚗️</span> Tra cứu hoạt chất
             </a>
-
-            <!-- Hồ tiêu -->
-            <a href="{{ route('thuoc.danh-sach', ['cay_trong' => 'Hồ tiêu']) }}"
-               class="group bg-gradient-to-br from-green-50 to-lime-50 border border-green-200/80 hover:border-green-400 rounded-xl p-4 transition-all hover:shadow-md">
-                <div class="text-3xl mb-2">🌿</div>
-                <div class="font-bold text-gray-900 group-hover:text-green-700 transition-colors">Hồ tiêu</div>
-                <div class="text-xs text-gray-500 mt-0.5 line-clamp-1">Chết nhanh, chết chậm, tuyến trùng</div>
-                <div class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100/70 px-2 py-0.5 rounded-full">
-                    {{ $cropStats['ho_tieu'] }} thuốc
-                </div>
+            <a href="{{ route('benh.danh-sach') }}"
+               class="inline-flex items-center gap-2 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 hover:border-emerald-400 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs">
+                <span>🌿</span> Các bài thuốc trị bệnh
             </a>
-
-            <!-- Chanh dây -->
-            <a href="{{ route('thuoc.danh-sach', ['cay_trong' => 'Chanh dây']) }}"
-               class="group bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/80 hover:border-purple-400 rounded-xl p-4 transition-all hover:shadow-md">
-                <div class="text-3xl mb-2">🟣</div>
-                <div class="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">Chanh dây</div>
-                <div class="text-xs text-gray-500 mt-0.5 line-clamp-1">Đốm dầu, bã trầu, phấn trắng, nhện đỏ</div>
-                <div class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-full">
-                    {{ $cropStats['chanh_day'] }} thuốc
-                </div>
+            <a href="{{ route('phoi-tron.index') }}"
+               class="inline-flex items-center gap-2 bg-white hover:bg-red-50 text-red-800 border border-red-200 hover:border-red-400 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-2xs">
+                <span>🚫</span> Kỵ phối trộn thuốc
             </a>
         </div>
     </div>
 
-    <!-- Thao tác nhanh -->
-    <div class="mb-6 flex flex-wrap gap-2">
-        <a href="{{ route('thuoc.them') }}"
-           class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-xs">
-            ➕ Thêm thuốc mới
-        </a>
-        <a href="{{ route('thuoc.danh-sach') }}"
-           class="inline-flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            💊 Xem tất cả thuốc
-        </a>
-        <a href="{{ route('danhmuc.danh-sach') }}"
-           class="inline-flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-            📁 Quản lý danh mục
-        </a>
+    <!-- Khu vực Quản trị (Admin - CRUD) -->
+    <div class="mb-6 p-4 bg-amber-50/80 border border-amber-200 rounded-2xl">
+        <div class="flex items-center justify-between gap-2 mb-2.5">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md">
+                    ⚙️ Khu vực Quản trị (Admin)
+                </span>
+                <span class="text-xs text-amber-700 hidden sm:inline">Thêm, sửa, xóa, xuất nhập dữ liệu</span>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('thuoc.quan-ly') }}"
+               class="inline-flex items-center gap-1.5 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
+                <span>💊</span> Quản lý thuốc
+            </a>
+            <a href="{{ route('danhmuc.danh-sach') }}"
+               class="inline-flex items-center gap-1.5 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
+                <span>📁</span> Quản lý danh mục
+            </a>
+            <a href="{{ route('benh.quan-ly') }}"
+               class="inline-flex items-center gap-1.5 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
+                <span>🌿</span> Quản lý bài thuốc
+            </a>
+            <a href="{{ route('thuoc.them') }}"
+               class="inline-flex items-center gap-1.5 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
+                <span>➕</span> Thêm thuốc mới
+            </a>
+            <a href="{{ route('thuoc.nhap-csv') }}"
+               class="inline-flex items-center gap-1.5 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
+                <span>📤</span> Import CSV
+            </a>
+            <a href="{{ route('thuoc.xuat-csv') }}"
+               class="inline-flex items-center gap-1.5 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
+                <span>📥</span> Xuất CSV đầy đủ
+            </a>
+            <a href="{{ route('thuoc.xuat-ten') }}"
+               class="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
+                <span>📊</span> Xuất 1 cột tên Excel
+            </a>
+        </div>
     </div>
 
     <!-- Lưới danh mục -->
