@@ -524,7 +524,7 @@ class HoatChatService
         'type'        => 'Vi lượng Bo',
         'code'        => 'Micro-Boron',
         'action'      => 'Tăng cường sức sống hạt phấn, tăng tỷ lệ thụ phấn đậu trái, dai cuống, chống rụng hoa và rụng trái non sinh lý.',
-        'patterns'    => ['bo 150.000', 'boyello', 'black-o', 'boron', 'bo hữu cơ'],
+        'patterns'    => ['bo 150.000', 'boyello', 'boron', 'bo hữu cơ'],
     ],
     [
         'key'         => 'zinc_chelate',
@@ -734,7 +734,7 @@ class HoatChatService
         'type'        => 'Bón gốc cải tạo đất',
         'code'        => 'Bio-Organic',
         'action'      => 'Tăng hàm lượng mùn hữu cơ trong đất, kích thích vi sinh vật có lợi, giúp đất tơi xốp giữ ẩm và giữ phân.',
-        'patterns'    => ['phân nở', 'bi amino seawe', 'đạm hữu cơ humic'],
+        'patterns'    => ['phân nở', 'bi amino seawe', 'đạm hữu cơ humic', 'black-o', 'black - o'],
     ],
 ];
 

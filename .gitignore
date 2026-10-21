@@ -33,3 +33,4 @@ scratch_*.php
 /playwright-report/
 /test-results/
 scan_all.php
+*.zip
