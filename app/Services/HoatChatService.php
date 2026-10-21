@@ -537,6 +537,16 @@ class HoatChatService
         'patterns'    => ['kẽm edta', 'siêu kẽm gold', 'zn-edta', 'kẽm (zn)'],
     ],
     [
+        'key'         => 'copper_chelate',
+        'name'        => 'Đồng Chelate 2 chiều (Cu-EDTA / Bud & Leaf Co Thổ Nhĩ Kỳ)',
+        'english_name'=> 'Two-Way Systemic Copper Chelate (Cu-EDTA)',
+        'group'       => 'Dinh dưỡng Vi lượng & Sát khuẩn',
+        'type'        => 'Vi lượng Đồng 2 chiều',
+        'code'        => 'Micro-Copper',
+        'action'      => 'Lưu dẫn 2 chiều rễ - ngọn, cung cấp vi lượng Đồng Chelate, sát khuẩn vết thương, tăng đề kháng vỏ thân, chống thối đọt non và khô cành.',
+        'patterns'    => ['bud&leaf', 'bud & leaf', 'đồng chelate', 'cu-edta', 'cu - edta'],
+    ],
+    [
         'key'         => 'calcium_boron',
         'name'        => 'Canxi - Bo (CanxiBo EDTA / Bo Sữa)',
         'english_name'=> 'Calcium & Boron Complex',
@@ -694,7 +704,7 @@ class HoatChatService
         'type'        => 'Kéo đọt & Mập chồi',
         'code'        => 'NPK High-N',
         'action'      => 'Tỷ lệ Đạm cao kết hợp vi lượng giúp bung đọt nhanh, đâm chồi cực mạnh, nở lá, mập cành, tạo cơi đọt khỏe.',
-        'patterns'    => ['30.10.10', '30.14.5', '30-14-5', '30-10-10', 'vọt đọt', 'củ sâm', 'cú đấm rồng', 'bud&leaf'],
+        'patterns'    => ['30.10.10', '30.14.5', '30-14-5', '30-10-10', 'vọt đọt', 'củ sâm', 'cú đấm rồng'],
     ],
     [
         'key'         => 'npk_high_potassium',
