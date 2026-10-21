@@ -1,6 +1,10 @@
 // ============================================================
 // Sổ Tay BVTV — app.js
 // ============================================================
+import Alpine from 'alpinejs';
+
+window.Alpine = Alpine;
+Alpine.start();
 
 const BVTV = {
 
@@ -325,6 +329,9 @@ const BVTV = {
             <td class="px-4 py-3 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1">
                     <a href="${p.url_xem}" class="text-xs px-2.5 py-1 rounded-md text-gray-600 hover:bg-gray-100 transition-colors">Xem</a>
+                    <button type="button"
+                            onclick="BVTV.moModalSuaNhanh({ id: ${p.id}, name: '${ten.replace(/'/g, "\\'")}', category_id: ${p.category_id || 'null'}, active_ingredient: '${(p.hoat_chat || '').replace(/'/g, "\\'")}', concentration: '${(p.ham_luong || '').replace(/'/g, "\\'")}', water_volume: '${(p.water_volume || '').replace(/'/g, "\\'")}', crops: '${(p.cay_trong || '').replace(/'/g, "\\'")}', usage: '${(p.cong_dung || '').replace(/'/g, "\\'")}', update_url: '/ajax/thuoc/${p.id}/quick-update' })"
+                            class="text-xs px-2.5 py-1 rounded-md text-amber-700 bg-amber-50 hover:bg-amber-100 font-semibold transition-colors">⚡ Sửa nhanh</button>
                     <a href="${p.url_sua}" class="text-xs px-2.5 py-1 rounded-md text-blue-600 hover:bg-blue-50 transition-colors">Sửa</a>
                     <button onclick="BVTV.xacNhanXoaAjax('${p.url_xoa}', '${ten.replace(/'/g, "\\'")}', this)"
                             class="text-xs px-2.5 py-1 rounded-md text-red-600 hover:bg-red-50 transition-colors">Xóa</button>
@@ -629,6 +636,107 @@ const BVTV = {
             }
         });
     },
+
+    // ----------------------------------------------------------
+    // Quick-Edit Modal (sửa nhanh thuốc qua AJAX PUT)
+    // ----------------------------------------------------------
+    moModalSuaNhanh(data) {
+        const modal = document.getElementById('quick-edit-modal');
+        const form = document.getElementById('quick-edit-form');
+        if (!modal || !form) return;
+
+        form.dataset.url = data.update_url || `/ajax/thuoc/${data.id}/quick-update`;
+        form.dataset.id = data.id;
+
+        const nameInput = form.querySelector('[name="name"]');
+        const catSelect = form.querySelector('[name="category_id"]');
+        const activeInput = form.querySelector('[name="active_ingredient"]');
+        const concInput = form.querySelector('[name="concentration"]');
+        const waterInput = form.querySelector('[name="water_volume"]');
+        const cropsInput = form.querySelector('[name="crops"]');
+        const usageInput = form.querySelector('[name="usage"]');
+
+        if (nameInput) nameInput.value = data.name || '';
+        if (catSelect && data.category_id) catSelect.value = data.category_id;
+        if (activeInput) activeInput.value = data.active_ingredient || '';
+        if (concInput) concInput.value = data.concentration || '';
+        if (waterInput) waterInput.value = data.water_volume || '';
+        if (cropsInput) cropsInput.value = data.crops || '';
+        if (usageInput) usageInput.value = data.usage || '';
+
+        form.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+        modal.classList.remove('hidden');
+        nameInput?.focus();
+    },
+
+    initQuickEdit() {
+        const modal = document.getElementById('quick-edit-modal');
+        const closeBtn = document.getElementById('quick-edit-close');
+        const cancelBtn = document.getElementById('quick-edit-cancel');
+        const form = document.getElementById('quick-edit-form');
+        if (!modal || !form) return;
+
+        closeBtn?.addEventListener('click', () => modal.classList.add('hidden'));
+        cancelBtn?.addEventListener('click', () => modal.classList.add('hidden'));
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = form.querySelector('[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Đang lưu...';
+
+            form.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+
+            const formData = new FormData(form);
+            const body = {};
+            formData.forEach((v, k) => { body[k] = v; });
+
+            try {
+                const { ok, status, data } = await BVTV.fetchJSON(
+                    form.dataset.url,
+                    { method: 'PUT', body: JSON.stringify(body) }
+                );
+
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+
+                if (ok && data.success) {
+                    modal.classList.add('hidden');
+                    BVTV.toast(data.thong_bao, 'success');
+
+                    // Cập nhật DOM row đang hiển thị
+                    const row = document.querySelector(`tr[data-id="${form.dataset.id}"]`);
+                    if (row) {
+                        const tempTbody = document.createElement('tbody');
+                        tempTbody.innerHTML = BVTV.renderRow(data.thuoc);
+                        const updatedRow = tempTbody.querySelector('tr');
+                        if (updatedRow) {
+                            updatedRow.style.background = '#fef9c3';
+                            row.replaceWith(updatedRow);
+                            setTimeout(() => { updatedRow.style.background = ''; }, 2000);
+                        }
+                    }
+                } else if (status === 422 && data.errors) {
+                    Object.entries(data.errors).forEach(([field, msgs]) => {
+                        const errEl = form.querySelector(`.field-error[data-field="${field}"]`);
+                        if (errEl) errEl.textContent = msgs[0];
+                    });
+                } else {
+                    BVTV.toast(data.message ?? 'Có lỗi xảy ra khi cập nhật.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                BVTV.toast('Lỗi kết nối khi cập nhật thuốc.', 'error');
+            }
+        });
+    },
 };
 
 // ----------------------------------------------------------
@@ -657,5 +765,6 @@ window.dongModalXoa = dongModalXoa;
 document.addEventListener('DOMContentLoaded', () => {
     BVTV.initLiveSearch();
     BVTV.initQuickAdd();
+    BVTV.initQuickEdit();
     BVTV.initTichChon();
 });

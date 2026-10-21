@@ -29,3 +29,7 @@ Thumbs.db
 scratch_*.php
 ~$*
 *.tmp
+/coverage-report/
+/playwright-report/
+/test-results/
+scan_all.php

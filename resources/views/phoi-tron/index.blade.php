@@ -1,5 +1,27 @@
-<x-layouts.app title="Tra Cứu Kỵ Phối Trộn Thuốc BVTV">
-<div class="px-4 py-6 lg:px-8 lg:py-8 max-w-7xl mx-auto space-y-8">
+<x-layouts.engineer title="Tra Cứu Kỵ Phối Trộn Thuốc BVTV">
+<div class="px-4 py-6 lg:px-8 lg:py-8 max-w-7xl mx-auto space-y-6">
+
+    <!-- 0. ENGINEER WORKSPACE NAVIGATION TABS -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-black uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs">
+                <span>🔬</span> PHÂN HỆ KỸ SƯ BVTV
+            </span>
+            <span class="text-xs text-slate-500 hidden md:inline">Không gian nghiên cứu & tra cứu chuyên sâu</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('phoi-tron.index') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-teal-700 text-white shadow-xs transition">
+                <span>🚫</span>
+                <span>Kiểm Tra Kỵ Phối Trộn</span>
+            </a>
+            <a href="{{ route('hoatchat.index') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 hover:text-teal-700 hover:bg-teal-50 border border-slate-200 shadow-2xs transition">
+                <span>⚗️</span>
+                <span>Tra Cứu Hoạt Chất & Hợp Chất</span>
+            </a>
+        </div>
+    </div>
 
     <!-- 1. HEADER SECTION -->
     <div class="relative bg-gradient-to-br from-emerald-800 via-teal-900 to-slate-900 rounded-3xl p-6 lg:p-8 text-white shadow-xl overflow-hidden border border-emerald-700/40">
@@ -7,10 +29,25 @@
         <div class="absolute right-20 top-0 w-48 h-48 bg-teal-400/10 rounded-full blur-2xl pointer-events-none"></div>
 
         <div class="relative z-10 max-w-3xl">
-            <div class="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs px-3 py-1 rounded-full font-medium mb-3 backdrop-blur-xs">
-                <span>⚖️ Cẩm Nang Nông Nghiệp & Tank-Mix</span>
-                <span>•</span>
-                <span>An Toàn Cây Trồng</span>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div class="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs px-3 py-1 rounded-full font-medium backdrop-blur-xs">
+                    <span>🔬 Phân Hệ Kỹ Sư BVTV</span>
+                    <span>•</span>
+                    <span>Cẩm Nang Tank-Mix & Kháng Thuốc</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('hoatchat.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-teal-500/30 hover:bg-teal-500/40 text-teal-100 text-xs font-semibold backdrop-blur-xs border border-teal-300/30 transition">
+                        <span>⚗️</span> Tra Cứu Hoạt Chất
+                    </a>
+                    @if(auth()->check() && auth()->user()->role === 'admin')
+                        <a href="{{ route('admin.inventory.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-xs border border-white/20 transition">
+                            <span>🏢</span> Về Quản Trị Kho
+                        </a>
+                        <a href="{{ route('pos.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold backdrop-blur-xs border border-white/20 transition">
+                            <span>💻</span> Mở Bàn Bán POS
+                        </a>
+                    @endif
+                </div>
             </div>
             <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
                 <span>🚫</span> Tra Cứu Tương Kỵ & Kỵ Phối Trộn Thuốc BVTV
@@ -647,33 +684,69 @@
         const container = document.getElementById('ket-qua-container');
 
         let statusBg = 'bg-emerald-50 border-emerald-300 text-emerald-900';
-        let statusBadge = '<span class="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold">🟢 AN TOÀN - CÓ THỂ PHỐI TRỘN</span>';
+        let statusBadge = '<span class="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold">🟢 COMPATIBLE - TƯƠNG THÍCH AN TOÀN</span>';
         let statusTitle = 'Hai sản phẩm này có tính tương thích tốt khi pha chung';
 
-        if (d.status === 'danger') {
-            statusBg = 'bg-red-50/90 border-red-300 text-red-950';
-            statusBadge = '<span class="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">🔴 CẤM KỴ - KHÔNG ĐƯỢC PHỐI TRỘN</span>';
-            statusTitle = 'CẢNH BÁO: Phát hiện phản ứng tương kỵ nguy hiểm!';
-        } else if (d.status === 'warning') {
+        const compStatus = d.compatibility_status || (d.status === 'danger' ? 'FORBIDDEN' : (d.status === 'warning' ? 'AVOID' : 'COMPATIBLE'));
+
+        if (compStatus === 'FORBIDDEN' || d.status === 'danger') {
+            statusBg = 'bg-rose-50/90 border-rose-300 text-rose-950';
+            statusBadge = '<span class="bg-rose-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">🔴 FORBIDDEN - CẤM KỴ TUYỆT ĐỐI</span>';
+            statusTitle = 'CẢNH BÁO: Phát hiện phản ứng tương kỵ gây cháy lá hoặc kết tủa!';
+        } else if (compStatus === 'AVOID' || d.status === 'warning') {
             statusBg = 'bg-amber-50/90 border-amber-300 text-amber-950';
-            statusBadge = '<span class="bg-amber-600 text-white px-3 py-1 rounded-full text-xs font-bold">🟡 THẬN TRỌNG - LƯU Ý KHI PHỐI</span>';
-            statusTitle = 'Có thể phối nhưng cần tuân thủ lưu ý kỹ thuật';
+            statusBadge = '<span class="bg-amber-600 text-white px-3 py-1 rounded-full text-xs font-bold">🟡 AVOID - THẬN TRỌNG CAO / NÊN TRÁNH</span>';
+            statusTitle = 'Có thể phối nhưng cần tuân thủ nghiêm ngặt điều kiện kỹ thuật';
+        } else if (compStatus === 'UNKNOWN') {
+            statusBg = 'bg-slate-50 border-slate-300 text-slate-800';
+            statusBadge = '<span class="bg-slate-600 text-white px-3 py-1 rounded-full text-xs font-bold">⚪ UNKNOWN - CHƯA RÕ KHẢO NGHIỆM</span>';
+            statusTitle = 'Chưa có ghi nhận tương kỵ trên nhãn đăng ký — Khuyến nghị thử nghiệm Jar Test';
+        }
+
+        // Khối Resistance Warnings (Quản lý tính kháng dịch tễ học)
+        let resistanceHtml = '';
+        if (d.resistance_warnings && d.resistance_warnings.length > 0) {
+            resistanceHtml = `
+            <div class="mt-4 p-4 rounded-2xl bg-purple-50/90 border border-purple-200 text-purple-900 space-y-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">🧬</span>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-purple-800">Quản Lý Tính Kháng (Resistance Management):</h4>
+                </div>
+                ${d.resistance_warnings.map(rw => `
+                    <div class="text-xs space-y-1">
+                        <div class="font-bold text-purple-950">${rw.title}</div>
+                        <p class="text-slate-700"><strong>• Cơ chế tác động:</strong> ${rw.mechanism}</p>
+                        <p class="text-slate-700"><strong>• Khuyến cáo luân phiên:</strong> ${rw.advice}</p>
+                        <p class="text-[11px] text-purple-800 italic bg-purple-100/60 p-2 rounded-lg border border-purple-200/50">${rw.note}</p>
+                    </div>
+                `).join('')}
+            </div>`;
         }
 
         let conflictsHtml = '';
         if (d.conflicts && d.conflicts.length > 0) {
             conflictsHtml = `
             <div class="mt-5 space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider ${d.status === 'danger' ? 'text-red-900' : 'text-amber-900'}">Chi tiết phản ứng tương kỵ phát hiện:</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider ${d.status === 'danger' ? 'text-rose-900' : 'text-amber-900'}">Chi tiết phản ứng tương kỵ phát hiện:</h4>
                 ${d.conflicts.map(c => `
-                    <div class="bg-white p-4 rounded-2xl border ${c.level === 'danger' ? 'border-red-200 shadow-2xs' : 'border-amber-200 shadow-2xs'} space-y-1.5">
-                        <div class="flex items-center gap-2">
-                            <span class="text-base">${c.level === 'danger' ? '🚫' : '⚠️'}</span>
-                            <span class="font-bold text-sm ${c.level === 'danger' ? 'text-red-700' : 'text-amber-700'}">${c.title}</span>
+                    <div class="bg-white p-4 rounded-2xl border ${c.level === 'danger' ? 'border-rose-200 shadow-2xs' : 'border-amber-200 shadow-2xs'} space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">${c.level === 'danger' ? '🚫' : '⚠️'}</span>
+                                <span class="font-bold text-sm ${c.level === 'danger' ? 'text-rose-700' : 'text-amber-700'}">${c.title}</span>
+                            </div>
+                            ${c.source_reference ? `
+                                <span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                                    Nguồn: ${c.source_type || 'Tài liệu'}
+                                </span>
+                            ` : ''}
                         </div>
                         <p class="text-xs text-gray-700 leading-relaxed"><strong>• Nguyên nhân:</strong> ${c.reason}</p>
                         <p class="text-xs text-gray-700 leading-relaxed"><strong>• Hậu quả:</strong> ${c.consequence}</p>
-                        <p class="text-xs text-emerald-800 font-medium leading-relaxed bg-emerald-50/80 p-2 rounded-lg border border-emerald-200/50"><strong>💡 Lời khuyên:</strong> ${c.advice}</p>
+                        ${c.source_reference ? `
+                            <p class="text-[11px] text-slate-500 font-mono"><strong>📚 Trích dẫn khoa học:</strong> ${c.source_reference} (Độ tin cậy: ${c.confidence || 'HIGH'})</p>
+                        ` : ''}
+                        <p class="text-xs text-emerald-800 font-medium leading-relaxed bg-emerald-50/80 p-2 rounded-lg border border-emerald-200/50"><strong>💡 Lời khuyên nông học:</strong> ${c.advice}</p>
                     </div>
                 `).join('')}
             </div>`;
@@ -706,9 +779,10 @@
             <div class="p-6 rounded-3xl border-2 ${statusBg} shadow-sm transition-all animate-fadeIn">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     ${statusBadge}
-                    <span class="text-xs text-gray-500">Phân tích chuyên gia BVTV</span>
+                    <span class="text-xs text-gray-500">Phân tích tương thích hóa lý BVTV</span>
                 </div>
                 <h3 class="text-lg font-bold mt-2.5">${statusTitle}</h3>
+                ${resistanceHtml}
                 ${conflictsHtml}
                 ${orderHtml}
             </div>
@@ -742,4 +816,4 @@
         document.getElementById('matrix-modal')?.classList.add('hidden');
     }
 </script>
-</x-layouts.app>
+</x-layouts.engineer>

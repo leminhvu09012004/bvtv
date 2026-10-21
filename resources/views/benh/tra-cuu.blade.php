@@ -1,4 +1,4 @@
-<x-layouts.app title="Các bài thuốc trị bệnh — Sổ Tay Thuốc BVTV">
+<x-layouts.storefront title="Các bài thuốc trị bệnh — Sổ Tay Thuốc BVTV">
     <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
 
         <!-- Header Người dùng (Chỉ xem) -->
@@ -25,14 +25,12 @@
                             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition backdrop-blur border border-white/20">
                             <span>🔍</span> Tra cứu thuốc
                         </a>
-                        <a href="{{ route('hoatchat.index') }}"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition backdrop-blur border border-white/20">
-                            <span>⚗️</span> Tra cứu hoạt chất
-                        </a>
+                        @if(auth()->check() && auth()->user()->role === 'admin')
                         <a href="{{ route('benh.quan-ly') }}"
                             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/90 hover:bg-amber-600 text-white text-sm font-semibold transition shadow-sm border border-amber-400">
                             <span>⚙️</span> Quản lý bài thuốc (Admin)
                         </a>
+                        @endif
                     </div>
                 </div>
 
@@ -187,11 +185,6 @@
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                                         <span>🛡️</span> Bệnh hại & Bài thuốc
                                     </span>
-                                    @if($planCount > 0)
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300">
-                                            <span>🧪</span> {{ $planCount }} phác đồ phối hợp
-                                        </span>
-                                    @endif
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-800 border border-green-200">
                                         <span>💊</span> {{ $benh->pesticides->count() }} thuốc
                                     </span>
@@ -270,254 +263,17 @@
                         </div>
                     @endif
 
-                    <!-- KHỐI PHÁC ĐỒ PHỐI HỢP CHI TIẾT & TOA THUỐC -->
-                    <div class="pt-3 space-y-6">
-                        @if(!empty($benh->hydrated_treatment_plans) && count($benh->hydrated_treatment_plans) > 0)
-                            <!-- TIÊU ĐỀ KHỐI PHÁC ĐỒ -->
+                    <!-- DANH MỤC THUỐC ĐẶC TRỊ KHUYẾN CÁO TRONG KHO -->
+                    <div class="pt-3 space-y-4">
+                        @if($benh->pesticides->isNotEmpty())
                             <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-gray-100">
                                 <div class="text-xs font-black uppercase tracking-wider text-emerald-900 flex items-center gap-2">
-                                    <span class="text-base">🧪</span>
-                                    <span>Phác đồ phối hợp chi tiết — Cái nào đi với cái nào ({{ count($benh->hydrated_treatment_plans) }} phác đồ chuẩn)</span>
+                                    <span class="text-base">📦</span>
+                                    <span>Đơn thuốc khuyến cáo đặc trị trong kho ({{ $benh->pesticides->count() }} sản phẩm)</span>
                                 </div>
                                 <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                                    ✓ Đã kiểm chứng chống kết tủa & an toàn cây trồng
+                                    ✓ Đã đồng bộ theo hoạt chất đặc trị
                                 </span>
-                            </div>
-
-                            <!-- DANH SÁCH CÁC PHÁC ĐỒ -->
-                            <div class="space-y-5">
-                                @foreach($benh->hydrated_treatment_plans as $planIdx => $plan)
-                                    <div class="bg-gradient-to-br from-emerald-50/30 via-white to-sky-50/20 rounded-2xl border-2 border-emerald-400/40 p-4 sm:p-5 shadow-sm space-y-4 hover:border-emerald-500 transition-all">
-                                        <!-- Header phác đồ -->
-                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-emerald-100/70">
-                                            <div class="space-y-1">
-                                                <div class="flex items-center gap-2 flex-wrap">
-                                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-black tracking-wide uppercase bg-emerald-700 text-white shadow-xs">
-                                                        {{ !empty(trim($plan['badge'] ?? '')) ? $plan['badge'] : ('Phác đồ ' . ($planIdx + 1)) }}
-                                                    </span>
-                                                    <h3 class="text-base sm:text-lg font-black text-gray-900 leading-snug">
-                                                        {{ !empty(trim($plan['title'] ?? '')) ? $plan['title'] : ('Phác đồ điều trị phối hợp ' . ($planIdx + 1)) }}
-                                                    </h3>
-                                                </div>
-                                                @if(!empty($plan['stage']))
-                                                    <div class="text-xs text-gray-700 font-medium flex items-center gap-1.5 pt-0.5">
-                                                        <span class="text-emerald-700 font-bold">🌱 Giai đoạn sử dụng:</span>
-                                                        <span class="text-gray-900 font-semibold">{{ $plan['stage'] }}</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                        <!-- SƠ ĐỒ TRỰC QUAN: CÁC THUỐC TRONG PHÁC ĐỒ PHỐI TRỘN -->
-                                        <div>
-                                            <!-- BĂNG CÔNG THỨC PHỐI TRỘN TỔNG QUAN -->
-                                            <div class="bg-white/80 border border-emerald-200/90 rounded-xl p-3 shadow-2xs flex items-center gap-2.5 flex-wrap mb-3.5">
-                                                <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5 shrink-0">
-                                                    <span class="text-base">🧪</span>
-                                                    <span>Công thức phối trộn ({{ count($plan['groups']) }} sản phẩm):</span>
-                                                </span>
-                                                <div class="flex items-center gap-2 flex-wrap">
-                                                    @foreach($plan['groups'] as $grpIdx => $grp)
-                                                        @if($grpIdx > 0)
-                                                             <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center shadow-2xs shrink-0" title="Phối hợp cùng">+</span>
-                                                        @endif
-                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-950 border border-emerald-200/80 font-bold text-xs shadow-2xs">
-                                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
-                                                            <span>{{ $grp['primary_pesticide']->name ?? ($grp['label'] ?: ('Thuốc ' . ($grpIdx + 1))) }}</span>
-                                                        </span>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-
-                                            @php
-                                                $grpCount = count($plan['groups'] ?? []);
-                                                $gridColsClass = match(true) {
-                                                    $grpCount === 1 => 'grid-cols-1 max-w-xl',
-                                                    $grpCount === 2 => 'grid-cols-1 md:grid-cols-2',
-                                                    $grpCount === 3 => 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3',
-                                                    default => 'grid-cols-1 md:grid-cols-2',
-                                                };
-                                            @endphp
-
-                                            <div class="grid {{ $gridColsClass }} gap-4 items-stretch">
-                                                @foreach($plan['groups'] as $grpIdx => $grp)
-                                                    <!-- KHỐI THUỐC TRONG PHÁC ĐỒ -->
-                                                    <div class="bg-white rounded-2xl p-4 border border-emerald-200/80 shadow-xs flex flex-col justify-between space-y-3 hover:border-emerald-400 transition min-w-0">
-                                                        <!-- Header vai trò của thuốc trong phác đồ -->
-                                                        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100">
-                                                            @if($grpIdx === 0)
-                                                                <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                                                                    <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center shadow-2xs shrink-0">1</span>
-                                                                    <span class="text-xs font-black text-emerald-900 uppercase tracking-wide line-clamp-1 break-words">
-                                                                        {{ !empty(trim($grp['label'] ?? '')) ? $grp['label'] : 'Thuốc chính (Món 1)' }}
-                                                                    </span>
-                                                                </div>
-                                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                                                                    Chủ lực
-                                                                </span>
-                                                            @else
-                                                                <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                                                                    <span class="w-5 h-5 rounded-full bg-teal-600 text-white text-[10px] font-black flex items-center justify-center shadow-2xs shrink-0">+</span>
-                                                                    <span class="text-xs font-black text-teal-900 uppercase tracking-wide line-clamp-1 break-words">
-                                                                        {{ !empty(trim($grp['label'] ?? '')) ? $grp['label'] : ('Thuốc phối hợp ' . ($grpIdx + 1)) }}
-                                                                    </span>
-                                                                </div>
-                                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 border border-teal-300 shrink-0">
-                                                                    + Phối hợp
-                                                                </span>
-                                                            @endif
-                                                        </div>
-
-                                                        <!-- Thẻ thuốc chính -->
-                                                        @if(!empty($grp['primary_pesticide']))
-                                                            @php $p = $grp['primary_pesticide']; @endphp
-                                                            <a href="{{ route('thuoc.xem', $p->id) }}"
-                                                               class="group/p flex items-start gap-3 p-3 rounded-xl bg-gray-50/80 hover:bg-emerald-50/60 border border-gray-200/80 hover:border-emerald-300 transition shadow-2xs">
-                                                                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white shrink-0 overflow-hidden border border-gray-200 flex items-center justify-center group-hover/p:scale-105 transition shadow-2xs p-1">
-                                                                    @if($p->image_url)
-                                                                        <img src="{{ $p->image_url }}" alt="{{ $p->name }}" class="w-full h-full object-contain">
-                                                                    @else
-                                                                        <span class="text-2xl">💊</span>
-                                                                    @endif
-                                                                </div>
-                                                                <div class="min-w-0 flex-1">
-                                                                    <div class="flex items-center gap-1.5 mb-1 flex-wrap">
-                                                                        @if($p->category)
-                                                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-200/80 text-gray-700">
-                                                                                {{ $p->category->name }}
-                                                                            </span>
-                                                                        @endif
-                                                                        @if($p->form_type)
-                                                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">
-                                                                                {{ $p->form_type }}
-                                                                            </span>
-                                                                        @endif
-                                                                    </div>
-                                                                    <h4 class="text-xs sm:text-sm font-bold text-gray-900 group-hover/p:text-emerald-700 line-clamp-2 leading-tight">
-                                                                        {{ $p->name }}
-                                                                    </h4>
-                                                                    @if($p->active_ingredient)
-                                                                        <div class="text-[11px] text-gray-600 line-clamp-2 mt-1 leading-tight">
-                                                                            ⚗️ {{ $p->active_ingredient }}
-                                                                        </div>
-                                                                    @endif
-                                                                    @if($p->water_volume)
-                                                                        <div class="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/80">
-                                                                            <span>💧</span> <span>{{ $p->water_volume }}</span>
-                                                                        </div>
-                                                                    @endif
-                                                                </div>
-                                                                <span class="text-xs text-gray-300 group-hover/p:text-emerald-600 transition pl-1 self-center">→</span>
-                                                            </a>
-                                                        @endif
-
-                                                        <!-- CÁC LỰA CHỌN THAY THẾ (NẾU CÓ) -->
-                                                        @if(!empty($grp['substitutes']) && count($grp['substitutes']) > 0)
-                                                            <div class="pt-2.5 border-t border-dashed border-amber-200 bg-amber-50/40 p-2.5 rounded-xl space-y-1.5 mt-auto">
-                                                                <div class="text-[10px] font-bold text-amber-900 uppercase tracking-wide flex items-center gap-1">
-                                                                    <span>🔄</span>
-                                                                    <span>{{ $grp['substitute_label'] ?? 'Hoặc có thể chọn thay thế bằng:' }}</span>
-                                                                </div>
-                                                                <div class="space-y-1.5">
-                                                                    @foreach($grp['substitutes'] as $sub)
-                                                                        <a href="{{ route('thuoc.xem', $sub->id) }}"
-                                                                           class="group/sub flex items-center justify-between gap-2.5 p-2 rounded-lg bg-white hover:bg-amber-50/80 border border-amber-200/80 hover:border-amber-400 transition text-xs shadow-2xs">
-                                                                            <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                                                                <div class="w-8 h-8 rounded-md bg-gray-100 shrink-0 overflow-hidden border border-gray-200 flex items-center justify-center p-0.5">
-                                                                                    @if($sub->image_url)
-                                                                                        <img src="{{ $sub->image_url }}" alt="{{ $sub->name }}" class="w-full h-full object-contain">
-                                                                                    @else
-                                                                                        <span class="text-xs">💊</span>
-                                                                                    @endif
-                                                                                </div>
-                                                                                <div class="min-w-0 flex-1">
-                                                                                    <span class="font-bold text-gray-900 group-hover/sub:text-amber-800 text-[11px] truncate block">{{ $sub->name }}</span>
-                                                                                    <span class="text-[10px] text-gray-500 truncate block">{{ $sub->active_ingredient ?? '' }}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            @if($sub->water_volume)
-                                                                                <div class="shrink-0 text-right">
-                                                                                    <span class="text-[9px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md inline-block max-w-[130px] truncate" title="{{ $sub->water_volume }}">
-                                                                                        💧 {{ \Illuminate\Support\Str::limit($sub->water_volume, 18) }}
-                                                                                    </span>
-                                                                                </div>
-                                                                            @endif
-                                                                        </a>
-                                                                    @endforeach
-                                                                </div>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-
-                                        <!-- HƯỚNG DẪN LIỀU LƯỢNG PHA CHUNG -->
-                                        @if(!empty($plan['dosage_guide']))
-                                            <div class="bg-emerald-50 border border-emerald-300/80 rounded-xl p-3.5 flex items-start gap-3 text-xs sm:text-sm text-emerald-950 leading-relaxed shadow-2xs">
-                                                <span class="text-xl shrink-0 leading-none">💧</span>
-                                                <div>
-                                                    <strong class="font-black text-emerald-900 block mb-0.5 uppercase tracking-wide text-xs">
-                                                        Cách pha & Liều lượng phối trộn chung:
-                                                    </strong>
-                                                    <span>{{ $plan['dosage_guide'] }}</span>
-                                                </div>
-                                            </div>
-                                        @endif
-
-                                        <!-- CẢNH BÁO AN TOÀN & CHỐNG KẾT TỦA -->
-                                        @if(!empty($plan['safety_note']))
-                                            <div class="bg-amber-50 border border-amber-300/80 rounded-xl p-3.5 flex items-start gap-3 text-xs sm:text-sm text-amber-950 leading-relaxed shadow-2xs">
-                                                <span class="text-xl shrink-0 leading-none">⚠️</span>
-                                                <div>
-                                                    <strong class="font-black text-amber-900 block mb-0.5 uppercase tracking-wide text-xs">
-                                                        Lưu ý phối trộn an toàn & Chống kết tủa:
-                                                    </strong>
-                                                    <span>{{ $plan['safety_note'] }}</span>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <!-- DANH MỤC TẤT CẢ SẢN PHẨM TRONG BỆNH (DẠNG THU GỌN / XEM THÊM) -->
-                            <details class="group bg-gray-50 rounded-2xl border border-gray-200 p-3.5 sm:p-4">
-                                <summary class="cursor-pointer text-xs font-bold text-gray-700 uppercase tracking-wide flex items-center justify-between select-none">
-                                    <span class="flex items-center gap-2">
-                                        <span>📦</span>
-                                        <span>Xem toàn bộ danh mục sản phẩm thuốc liên quan ({{ $benh->pesticides->count() }})</span>
-                                    </span>
-                                    <span class="text-gray-400 group-open:rotate-180 transition-transform font-bold text-sm">▼</span>
-                                </summary>
-                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 pt-3.5">
-                                    @foreach($benh->pesticides as $pesticide)
-                                        <a href="{{ route('thuoc.xem', $pesticide->id) }}"
-                                           class="flex items-center gap-3 p-2.5 rounded-xl border border-gray-200 bg-white hover:border-emerald-400 hover:bg-emerald-50/20 transition shadow-2xs">
-                                            <div class="w-12 h-12 rounded-lg bg-gray-100 shrink-0 overflow-hidden border border-gray-200 flex items-center justify-center">
-                                                @if($pesticide->image_url)
-                                                    <img src="{{ $pesticide->image_url }}" alt="{{ $pesticide->name }}" class="w-full h-full object-cover">
-                                                @else
-                                                    <span class="text-xl opacity-40">💊</span>
-                                                @endif
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <h4 class="text-xs font-bold text-gray-900 truncate">{{ $pesticide->name }}</h4>
-                                                <div class="text-[11px] text-gray-500 truncate">{{ $pesticide->active_ingredient ?? '—' }}</div>
-                                                @if($pesticide->water_volume)
-                                                    <div class="text-[10px] text-teal-700 font-semibold">💧 {{ $pesticide->water_volume }}</div>
-                                                @endif
-                                            </div>
-                                            <span class="text-xs text-gray-300">→</span>
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </details>
-                        @elseif($benh->pesticides->isNotEmpty())
-                            <!-- Trường hợp bệnh chưa có phác đồ cấu hình cụ thể: hiển thị lưới thuốc mặc định -->
-                            <div class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
-                                <span>📦</span>
-                                <span>Đơn thuốc khuyến cáo ({{ $benh->pesticides->count() }})</span>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                                 @foreach($benh->pesticides as $pesticide)
@@ -765,9 +521,12 @@
                 clearBtn.classList.toggle('hidden', query.length === 0);
 
                 let visibleCount = 0;
+                const words = query.split(/[\s,./\-_–—+:]+/).filter(Boolean);
+
                 cards.forEach(card => {
                     const corpus = card.dataset.search || '';
-                    if (query === '' || corpus.includes(query)) {
+                    const isMatch = query === '' || corpus.includes(query) || (words.length > 0 && words.every(w => corpus.includes(w)));
+                    if (isMatch) {
                         card.classList.remove('hidden');
                         visibleCount++;
                         // Nếu đang có từ khóa tìm kiếm, tự động mở chi tiết bài thuốc khớp
@@ -818,4 +577,4 @@
             }
         });
     </script>
-</x-layouts.app>
+</x-layouts.storefront>

@@ -248,8 +248,23 @@
                                 <div class="flex items-center justify-end gap-1">
                                     <a href="{{ route('thuoc.xem', [$pesticide, 'admin' => 1]) }}"
                                        class="text-xs px-2.5 py-1 rounded-md text-gray-600 hover:bg-gray-100 transition-colors">Xem</a>
+                                    <button type="button"
+                                            onclick="BVTV.moModalSuaNhanh(@js([
+                                                'id' => $pesticide->id,
+                                                'name' => $pesticide->name,
+                                                'category_id' => $pesticide->category_id,
+                                                'active_ingredient' => $pesticide->active_ingredient,
+                                                'concentration' => $pesticide->concentration,
+                                                'water_volume' => $pesticide->water_volume,
+                                                'crops' => $pesticide->crops,
+                                                'usage' => $pesticide->usage,
+                                                'update_url' => route('ajax.thuoc.quick-update', $pesticide)
+                                            ]))"
+                                            class="text-xs px-2.5 py-1 rounded-md text-amber-700 bg-amber-50 hover:bg-amber-100 font-semibold transition-colors">
+                                        ⚡ Sửa nhanh
+                                    </button>
                                     <a href="{{ route('thuoc.sua', [$pesticide, 'from' => 'quan-ly']) }}"
-                                       class="text-xs px-2.5 py-1 rounded-md text-blue-600 hover:bg-blue-50 transition-colors">Sửa</a>
+                                       class="text-xs px-2.5 py-1 rounded-md text-blue-600 hover:bg-blue-50 transition-colors">Đầy đủ</a>
                                     <button
                                         onclick="BVTV.xacNhanXoaAjax('{{ route('ajax.xoa', $pesticide) }}', '{{ addslashes($pesticide->name) }}', this)"
                                         class="text-xs px-2.5 py-1 rounded-md text-red-600 hover:bg-red-50 transition-colors">
@@ -341,6 +356,91 @@
                 </button>
                 <button type="button" id="quick-add-close-bottom"
                     onclick="document.getElementById('quick-add-close').click()"
+                    class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                    Hủy
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================== -->
+<!-- Quick-Edit Modal (Sửa nhanh thông số thuốc)                 -->
+<!-- ========================================================== -->
+<div id="quick-edit-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-0 sm:px-4">
+    <div class="bg-white rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-900 flex items-center gap-1.5">
+                <span>⚡</span> Sửa nhanh thông số thuốc
+            </h3>
+            <button type="button" id="quick-edit-close" class="text-gray-400 hover:text-gray-600 p-1 rounded-md">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="quick-edit-form" class="px-5 py-4 space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Tên thuốc <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="name" required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <p class="field-error text-red-500 text-xs mt-1" data-field="name"></p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Danh mục <span class="text-red-500">*</span>
+                </label>
+                <select name="category_id" required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                    <option value="">-- Chọn danh mục --</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}">{{ $cat->emoji }} {{ $cat->name }}</option>
+                    @endforeach
+                </select>
+                <p class="field-error text-red-500 text-xs mt-1" data-field="category_id"></p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hoạt chất</label>
+                <input type="text" name="active_ingredient"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hàm lượng / Nồng độ</label>
+                <input type="text" name="concentration"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">💧 Lượng nước pha</label>
+                <input type="text" name="water_volume"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Cây trồng đăng ký</label>
+                <input type="text" name="crops"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Công dụng / Trị bệnh</label>
+                <textarea name="usage" rows="2"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                    class="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                    💾 Cập nhật ngay
+                </button>
+                <button type="button" id="quick-edit-cancel"
                     class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     Hủy
                 </button>

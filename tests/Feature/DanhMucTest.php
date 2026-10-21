@@ -14,6 +14,18 @@ class DanhMucTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $admin = \App\Models\User::create([
+            'name'     => 'Admin Category Test',
+            'email'    => 'admin.category@bvtv.vn',
+            'password' => bcrypt('password'),
+            'role'     => 'admin',
+        ]);
+        $this->actingAs($admin);
+    }
+
     // =========================================================================
     // Setup helpers
     // =========================================================================

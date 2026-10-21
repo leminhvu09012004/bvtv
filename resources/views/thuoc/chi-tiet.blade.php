@@ -1,52 +1,25 @@
-<x-layouts.app :title="$pesticide->name">
-<div class="px-4 py-6 lg:px-8 lg:py-8 max-w-4xl mx-auto">
+<x-layouts.storefront :title="$pesticide->name">
+<div class="px-4 py-6 lg:px-8 lg:py-8 max-w-5xl mx-auto">
 
-    <nav class="text-sm text-gray-500 mb-4 flex items-center gap-1.5 flex-wrap">
-        <a href="{{ route('home') }}" class="hover:text-green-600">Trang chủ</a>
+    <nav class="text-xs sm:text-sm text-slate-500 mb-4 flex items-center gap-1.5 flex-wrap">
+        <a href="{{ route('home') }}" class="hover:text-emerald-600 transition">Trang chủ</a>
         <span>/</span>
+        <a href="{{ route('thuoc.tra-cuu') }}" class="hover:text-emerald-600 transition">Danh mục thuốc</a>
         @if($pesticide->category)
-            <a href="{{ route('danhmuc.xem', $pesticide->category->slug) }}" class="hover:text-green-600">
+            <span>/</span>
+            <a href="{{ route('danhmuc.xem', $pesticide->category->slug) }}" class="hover:text-emerald-600 transition">
                 {{ $pesticide->category->name }}
             </a>
-            <span>/</span>
         @endif
-        <span class="text-gray-800 font-medium truncate max-w-[250px]">{{ $pesticide->name }}</span>
+        <span>/</span>
+        <span class="text-slate-900 font-bold truncate max-w-[200px] sm:max-w-xs">{{ $pesticide->name }}</span>
     </nav>
 
-    @php
-        $isAdminMode = request()->has('admin') || str_contains(url()->previous(), 'quan-ly');
-        $fallbackUrl = $isAdminMode ? route('thuoc.quan-ly') : route('thuoc.tra-cuu');
-    @endphp
-
     <div class="flex items-center justify-between gap-3 mb-5">
-        <a href="{{ $fallbackUrl }}"
-           id="btn-quay-lai"
-           onclick="if(document.referrer && document.referrer !== window.location.href){ event.preventDefault(); history.back(); }"
-           class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 font-medium cursor-pointer">
-            ← Quay lại {{ $isAdminMode ? 'trang Quản lý' : 'trang trước' }}
+        <a href="{{ route('thuoc.tra-cuu') }}"
+           class="text-xs sm:text-sm text-slate-500 hover:text-emerald-700 flex items-center gap-1 font-semibold transition">
+            ← Quay lại danh mục thuốc
         </a>
-
-        <div class="flex items-center gap-2">
-            @if($isAdminMode)
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-amber-800 bg-amber-100 rounded-lg">
-                    ⚙️ Chế độ Quản trị
-                </span>
-                <a href="{{ route('thuoc.sua', [$pesticide, 'from' => 'chi-tiet-admin']) }}"
-                   class="inline-flex items-center gap-1.5 border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
-                    ✏️ Chỉnh sửa
-                </a>
-                <button
-                    onclick="moModalXoa('{{ route('thuoc.xoa', $pesticide) }}', '{{ addslashes($pesticide->name) }}')"
-                    class="inline-flex items-center gap-1.5 border border-red-300 bg-red-50 text-red-700 hover:bg-red-100 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-2xs">
-                    🗑️ Xóa
-                </button>
-            @else
-                <a href="{{ route('thuoc.xem', [$pesticide, 'admin' => 1]) }}"
-                   class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-amber-700 hover:bg-amber-50 px-2.5 py-1.5 rounded-lg transition border border-transparent hover:border-amber-200">
-                    <span>⚙️</span> Quản lý thuốc này
-                </a>
-            @endif
-        </div>
     </div>
 
     <!-- Card chi tiết -->
@@ -119,8 +92,183 @@
                                 <span>🎨 Có thể dính màu trái</span>
                             </span>
                         @endif
+                        @if($pesticide->frac_code)
+                            <span class="text-xs sm:text-sm font-bold text-purple-800 bg-purple-50 border border-purple-200 px-3 py-1 rounded-lg inline-flex items-center gap-1.5 shadow-2xs" title="Mã nhóm cơ chế tác động trừ bệnh (Fungicide Resistance)">
+                                <span>🍄 FRAC:</span> <span>{{ $pesticide->frac_code }}</span>
+                            </span>
+                        @endif
+                        @if($pesticide->irac_code)
+                            <span class="text-xs sm:text-sm font-bold text-teal-800 bg-teal-50 border border-teal-200 px-3 py-1 rounded-lg inline-flex items-center gap-1.5 shadow-2xs" title="Mã nhóm cơ chế tác động trừ sâu rầy (Insecticide Resistance)">
+                                <span>🦗 IRAC:</span> <span>{{ $pesticide->irac_code }}</span>
+                            </span>
+                        @endif
                     </div>
 
+                    @if($pesticide->productVariants && $pesticide->productVariants->isNotEmpty())
+                        @php
+                            $variantList = $pesticide->productVariants->map(function($pv) {
+                                return [
+                                    'id' => $pv->id,
+                                    'sku' => $pv->sku,
+                                    'specification' => $pv->specification,
+                                    'unit' => $pv->unit ?? 'chai/gói',
+                                    'price' => $pv->effective_price,
+                                    'formatted_price' => $pv->formatted_price,
+                                    'stock' => (int)$pv->inventories->sum('quantity_available'),
+                                ];
+                            });
+                            $defaultVariant = $variantList->firstWhere('stock', '>', 0) ?? $variantList->first();
+                        @endphp
+                        <div class="mt-4 pt-4 border-t border-slate-100"
+                             x-data="{
+                                 variants: {{ Js::from($variantList) }},
+                                 selectedId: {{ $defaultVariant['id'] ?? 'null' }},
+                                 quantity: 1,
+                                 isSubmitting: false,
+                                 get current() {
+                                     return this.variants.find(v => v.id === this.selectedId) || this.variants[0];
+                                 },
+                                 async addToCart(isBuyNow = false) {
+                                     if (!this.current || this.current.stock <= 0 || this.isSubmitting) return;
+                                     this.isSubmitting = true;
+                                     try {
+                                         const res = await fetch('{{ route('ajax.cart.add') }}', {
+                                             method: 'POST',
+                                             headers: {
+                                                 'Content-Type': 'application/json',
+                                                 'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').content,
+                                                 'Accept': 'application/json'
+                                             },
+                                             body: JSON.stringify({
+                                                 variant_id: this.current.id,
+                                                 quantity: this.quantity
+                                             })
+                                         });
+                                         const data = await res.json();
+                                         if (data.success) {
+                                             window.dispatchEvent(new CustomEvent('cart-updated', { detail: data.cart }));
+                                             if (isBuyNow) {
+                                                 window.location.href = '{{ route('checkout.index') }}';
+                                             } else {
+                                                 if (typeof showToast === 'function') {
+                                                     showToast('✅ Đã thêm ' + this.quantity + ' ' + this.current.specification + ' vào giỏ hàng!');
+                                                 } else {
+                                                     alert('Đã thêm sản phẩm vào giỏ hàng!');
+                                                 }
+                                             }
+                                         } else {
+                                             alert(data.message || 'Có lỗi xảy ra');
+                                         }
+                                     } catch (e) {
+                                         console.error(e);
+                                     } finally {
+                                         this.isSubmitting = false;
+                                     }
+                                 }
+                             }">
+                            <!-- Giá bán nổi bật & trạng thái tồn kho -->
+                            <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 mb-4 flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <span class="text-xs font-semibold text-emerald-800 uppercase tracking-wider block mb-0.5">Giá bán niêm yết:</span>
+                                    <div class="flex items-baseline gap-2">
+                                        <span class="text-2xl sm:text-3xl font-black text-emerald-700 tabular-nums tracking-tight"
+                                              x-text="current?.formatted_price">
+                                            {{ $defaultVariant['formatted_price'] ?? 'Liên hệ' }}
+                                        </span>
+                                        <span class="text-xs text-slate-500 font-mono"
+                                              x-text="'SKU: ' + (current?.sku || '')">
+                                            SKU: {{ $defaultVariant['sku'] ?? 'N/A' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shadow-2xs"
+                                          :class="(current?.stock || 0) > 0 ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 'bg-rose-100 text-rose-900 border border-rose-200'"
+                                          x-text="(current?.stock || 0) > 0 ? ('✓ Còn ' + current.stock + ' ' + (current?.unit || '')) : '✕ Tạm hết hàng'">
+                                        @if(($defaultVariant['stock'] ?? 0) > 0)
+                                            ✓ Còn {{ $defaultVariant['stock'] }} {{ $defaultVariant['unit'] }}
+                                        @else
+                                            ✕ Tạm hết hàng
+                                        @endif
+                                    </span>
+                                    <div class="text-[11px] text-slate-400 mt-1">Sẵn sàng giao ngay</div>
+                                </div>
+                            </div>
+
+                            <!-- Tiêu đề bộ chọn quy cách -->
+                            <div class="mb-2">
+                                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                    Chọn quy cách đóng gói (<span x-text="variants.length">{{ count($variantList) }}</span> loại):
+                                </h4>
+                            </div>
+
+                            <!-- Danh sách biến thể quy cách -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                @foreach($variantList as $v)
+                                    <div @click="selectedId = {{ $v['id'] }}"
+                                         class="p-3.5 rounded-xl border cursor-pointer transition select-none shadow-2xs"
+                                         :class="selectedId === {{ $v['id'] }}
+                                             ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-500/50'
+                                             : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'">
+                                        <div class="flex items-start justify-between gap-1">
+                                            <div>
+                                                <div class="text-xs font-bold text-slate-800">{{ $v['specification'] }}</div>
+                                                <div class="text-[10px] text-slate-400 font-mono">SKU: {{ $v['sku'] }}</div>
+                                            </div>
+                                            <span class="text-xs font-extrabold text-emerald-600 tabular-nums">{{ $v['formatted_price'] }}</span>
+                                        </div>
+                                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                                            <span class="text-slate-500">Tồn kho 2 chi nhánh:</span>
+                                            <span class="font-bold tabular-nums {{ $v['stock'] > 0 ? 'text-emerald-700' : 'text-rose-600' }}">
+                                                {{ $v['stock'] > 0 ? ($v['stock'] . ' ' . $v['unit']) : 'Tạm hết hàng' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Bộ chọn số lượng & Nút đặt hàng -->
+                            <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-600">Số lượng:</span>
+                                    <div class="flex items-center border border-slate-300 rounded-xl bg-white shadow-2xs overflow-hidden">
+                                        <button type="button"
+                                                @click="quantity = Math.max(1, quantity - 1)"
+                                                class="w-9 h-9 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold transition">
+                                            -
+                                        </button>
+                                        <input type="number"
+                                               x-model.number="quantity"
+                                               min="1"
+                                               class="w-14 h-9 text-center text-xs font-bold text-slate-800 border-x border-slate-200 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                        <button type="button"
+                                                @click="quantity = quantity + 1"
+                                                class="w-9 h-9 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold transition">
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1 flex items-center gap-2.5">
+                                    <button type="button"
+                                            @click="addToCart(false)"
+                                            :disabled="!current || current.stock <= 0 || isSubmitting"
+                                            class="flex-1 py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none shadow-2xs">
+                                        <span>🛒</span>
+                                        <span x-text="isSubmitting ? 'Đang thêm...' : 'Thêm vào giỏ hàng'">Thêm vào giỏ hàng</span>
+                                    </button>
+
+                                    <button type="button"
+                                            @click="addToCart(true)"
+                                            :disabled="!current || current.stock <= 0 || isSubmitting"
+                                            class="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none shadow-md">
+                                        <span>⚡</span>
+                                        <span>Mua ngay</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     @if($pesticide->stains_fruit)
                         <div class="mt-4 bg-amber-50 border border-amber-300/80 rounded-xl p-3.5 flex items-start gap-2.5 text-amber-900 shadow-2xs">
@@ -154,14 +302,8 @@
 
             <div class="py-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <dt class="text-sm font-medium text-gray-500">Hoạt chất</dt>
-                <dd class="text-sm text-gray-900 sm:col-span-2 font-semibold flex items-center justify-between gap-2">
-                    <span>{{ $pesticide->active_ingredient ?: '—' }}</span>
-                    @if($pesticide->active_ingredient)
-                        <a href="{{ route('hoatchat.index', ['q' => $pesticide->active_ingredient]) }}"
-                           class="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-lg transition font-normal shrink-0">
-                            <span>⚗️</span> Xem nhóm hoạt chất
-                        </a>
-                    @endif
+                <dd class="text-sm text-gray-900 sm:col-span-2 font-semibold">
+                    {{ $pesticide->active_ingredient ?: '—' }}
                 </dd>
             </div>
 
@@ -260,12 +402,7 @@
                             {{ str_replace(['\r\n', '\r', '\n'], "\n", $pesticide->notes) }}
                         </div>
                     @else
-                        <div class="flex items-center gap-3">
-                            <span class="text-gray-400">—</span>
-                            <a href="{{ route('thuoc.sua', [$pesticide, 'from' => $isAdminMode ? 'chi-tiet-admin' : 'chi-tiet']) }}" class="text-xs text-green-600 hover:text-green-700 hover:underline">
-                                + Thêm ghi chú
-                            </a>
-                        </div>
+                        <span class="text-gray-400">—</span>
                     @endif
                 </dd>
             </div>
@@ -293,12 +430,14 @@
                     </p>
                 </div>
 
+                @if(auth()->check() && in_array(auth()->user()->role, ['admin', 'engineer']))
                 <a href="{{ route('phoi-tron.index', ['p1' => $pesticide->id]) }}"
                     class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3.5 py-2 rounded-xl transition-all shadow-2xs self-start sm:self-auto">
                     <span>⚡</span>
-                    <span>Thử phối thuốc này</span>
+                    <span>Thử phối thuốc này (Kỹ sư)</span>
                     <span>→</span>
                 </a>
+                @endif
             </div>
 
             <div class="mt-5 space-y-4">
@@ -374,24 +513,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!btnQuayLai) return;
 
     btnQuayLai.addEventListener('click', (e) => {
-        @if($isAdminMode)
-            e.preventDefault();
-            window.location.href = "{{ route('thuoc.quan-ly') }}";
-        @else
-            e.preventDefault();
-            // Đánh dấu để trang tra cứu biết người dùng đang quay lại và phục hồi tọa độ vị trí trước
-            sessionStorage.setItem('bvtv_is_returning', '1');
+        e.preventDefault();
+        sessionStorage.setItem('bvtv_is_returning', '1');
 
-            let returnUrl = sessionStorage.getItem('bvtv_tra_cuu_url');
-            if (!returnUrl || (!returnUrl.startsWith('/') && !returnUrl.startsWith(window.location.origin))) {
-                returnUrl = "{{ route('thuoc.tra-cuu') }}";
-            }
+        let returnUrl = sessionStorage.getItem('bvtv_tra_cuu_url');
+        if (!returnUrl || (!returnUrl.startsWith('/') && !returnUrl.startsWith(window.location.origin))) {
+            returnUrl = "{{ route('thuoc.tra-cuu') }}";
+        }
 
-            // Đi thẳng về trang tra cứu (replaceState / location.replace để không bị kẹt hay lặp bước qua các trang sửa đổi trung gian)
-            window.location.replace(returnUrl);
-        @endif
+        window.location.replace(returnUrl);
     });
 });
 
 </script>
-</x-layouts.app>
+</x-layouts.storefront>

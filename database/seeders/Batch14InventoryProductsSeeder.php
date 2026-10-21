@@ -325,9 +325,9 @@ class Batch14InventoryProductsSeeder extends Seeder
             ],
             [
                 'category_id' => $categories['phan-bon-la']->id,
-                'name' => '20.20 Thủy Sinh 250g - NPK Tan Nhanh Nuôi Đọt Mát Bông (Gói 250g)',
+                'name' => '20.20.20 Thủy Sinh 250g - NPK Tan Nhanh Nuôi Đọt Mát Bông (Gói 250g)',
                 'image' => null,
-                'active_ingredient' => 'N: 20%, P2O5: 20% dạng muối khoáng tinh khiết tan 100% trong nước',
+                'active_ingredient' => 'N: 20%, P2O5: 20%, K2O: 20% dạng muối khoáng tinh khiết tan 100% trong nước',
                 'concentration' => 'Bột mịn trắng tan trong 30 giây (Gói 250g)',
                 'water_volume' => 'Pha 250g cho 200 lít nước (1 phuy) phun ướt đều tán lá hoặc tưới rễ',
                 'stains_fruit' => false,

@@ -1,5 +1,27 @@
-<x-layouts.app title="Tra cứu Hoạt chất & Nhóm Hợp chất BVTV — Sổ Tay Thuốc BVTV">
+<x-layouts.engineer title="Tra cứu Hoạt chất & Nhóm Hợp chất BVTV — Phân Hệ Kỹ Sư">
     <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+
+        <!-- 0. ENGINEER WORKSPACE NAVIGATION TABS -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-black uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs">
+                    <span>🔬</span> PHÂN HỆ KỸ SƯ BVTV
+                </span>
+                <span class="text-xs text-slate-500 hidden md:inline">Không gian nghiên cứu & tra cứu chuyên sâu</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('phoi-tron.index') }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 hover:text-teal-700 hover:bg-teal-50 border border-slate-200 shadow-2xs transition">
+                    <span>🚫</span>
+                    <span>Kiểm Tra Kỵ Phối Trộn</span>
+                </a>
+                <a href="{{ route('hoatchat.index') }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-teal-700 text-white shadow-xs transition">
+                    <span>⚗️</span>
+                    <span>Tra Cứu Hoạt Chất & Hợp Chất</span>
+                </a>
+            </div>
+        </div>
 
         <!-- Header -->
         <div class="bg-gradient-to-r from-teal-700 via-emerald-700 to-green-800 rounded-2xl text-white p-6 sm:p-8 shadow-lg relative overflow-hidden">
@@ -8,7 +30,7 @@
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-xs font-semibold text-emerald-100 mb-3 border border-white/20">
-                            <span>🧪 CƠ SỞ DỮ LIỆU KHOA HỌC</span>
+                            <span>🔬 PHÂN HỆ KỸ SƯ BVTV</span>
                             <span>•</span>
                             <span>TIÊU CHUẨN FRAC & IRAC</span>
                         </div>
@@ -21,18 +43,16 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2 shrink-0">
-                        <a href="{{ route('thuoc.tra-cuu') }}"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition backdrop-blur border border-white/20">
-                            <span>🔍</span> Tra cứu thuốc
-                        </a>
                         <a href="{{ route('phoi-tron.index') }}"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/30 hover:bg-red-500/40 text-white text-sm font-semibold transition backdrop-blur border border-red-300/30">
-                            <span>🚫</span> Kỵ phối trộn
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-bold transition backdrop-blur border border-white/20">
+                            <span>🚫</span> Kiểm Tra Phối Trộn
                         </a>
-                        <a href="{{ route('benh.tra-cuu') }}"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition backdrop-blur border border-white/20">
-                            <span>🌿</span> Các bài thuốc
-                        </a>
+                        @if(auth()->check() && auth()->user()->role === 'admin')
+                            <a href="{{ route('admin.inventory.index') }}"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition backdrop-blur border border-white/20">
+                                <span>🏢</span> Quản Trị Kho
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -223,8 +243,25 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                             @foreach($ai['pesticides'] as $pesticide)
-                                <a href="{{ route('thuoc.xem', $pesticide->id) }}"
-                                   class="pesticide-item group flex items-center gap-3.5 p-3 rounded-xl border border-gray-200/80 hover:border-emerald-400 hover:bg-emerald-50/20 bg-white transition shadow-sm hover:shadow">
+                                <div onclick="moModalKyThuat(this)"
+                                     data-id="{{ $pesticide->id }}"
+                                     data-name="{{ $pesticide->name }}"
+                                     data-cat="{{ $pesticide->category?->name ?? 'Thuốc BVTV' }}"
+                                     data-active="{{ $pesticide->active_ingredient }}"
+                                     data-form="{{ $pesticide->form_type ?? '—' }}"
+                                     data-water="{{ $pesticide->water_volume ?? '—' }}"
+                                     data-concentration="{{ $pesticide->concentration ?? '—' }}"
+                                     data-target="{{ $pesticide->target ?? '—' }}"
+                                     data-crops="{{ $pesticide->crops ?? '—' }}"
+                                     data-usage="{{ $pesticide->usage ?? '—' }}"
+                                     data-isolation="{{ $pesticide->isolation_period ? $pesticide->isolation_period . ' ngày' : '—' }}"
+                                     data-stains="{{ $pesticide->stains_fruit ? 'Có thể dính màu trái' : 'An toàn / Không dính màu' }}"
+                                     data-manufacturer="{{ $pesticide->manufacturer ?? '—' }}"
+                                     data-frac="{{ $pesticide->frac_code ?? '—' }}"
+                                     data-irac="{{ $pesticide->irac_code ?? '—' }}"
+                                     data-img="{{ $pesticide->image_url ?? '' }}"
+                                     data-mixing-url="{{ route('phoi-tron.index', ['pesticide_id' => $pesticide->id]) }}"
+                                     class="pesticide-item group flex items-center gap-3.5 p-3 rounded-xl border border-gray-200/80 hover:border-emerald-500 hover:bg-emerald-50/20 bg-white transition shadow-sm hover:shadow cursor-pointer select-none">
 
                                     <!-- Ảnh thumbnail to rõ 64x64 -->
                                     <div class="w-16 h-16 rounded-xl bg-gray-100 shrink-0 overflow-hidden border border-gray-200 flex items-center justify-center group-hover:scale-105 transition">
@@ -270,10 +307,11 @@
                                         @endif
                                     </div>
 
-                                    <div class="shrink-0 text-gray-300 group-hover:text-emerald-600 transition pl-1">
-                                        →
+                                    <div class="shrink-0 text-slate-400 group-hover:text-emerald-600 transition text-xs font-semibold pl-1 flex items-center gap-1">
+                                        <span class="hidden sm:inline">Chi tiết</span>
+                                        <span>🔍</span>
                                     </div>
-                                </a>
+                                </div>
                             @endforeach
                         </div>
                     </div>
@@ -354,8 +392,25 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                             @foreach($group['pesticides'] as $pesticide)
-                                <a href="{{ route('thuoc.xem', $pesticide->id) }}"
-                                   class="pesticide-item group flex items-center gap-3.5 p-3 rounded-xl border border-gray-200/80 hover:border-indigo-400 hover:bg-indigo-50/20 bg-white transition shadow-sm hover:shadow">
+                                <div onclick="moModalKyThuat(this)"
+                                     data-id="{{ $pesticide->id }}"
+                                     data-name="{{ $pesticide->name }}"
+                                     data-cat="{{ $pesticide->category?->name ?? 'Thuốc BVTV' }}"
+                                     data-active="{{ $pesticide->active_ingredient }}"
+                                     data-form="{{ $pesticide->form_type ?? '—' }}"
+                                     data-water="{{ $pesticide->water_volume ?? '—' }}"
+                                     data-concentration="{{ $pesticide->concentration ?? '—' }}"
+                                     data-target="{{ $pesticide->target ?? '—' }}"
+                                     data-crops="{{ $pesticide->crops ?? '—' }}"
+                                     data-usage="{{ $pesticide->usage ?? '—' }}"
+                                     data-isolation="{{ $pesticide->isolation_period ? $pesticide->isolation_period . ' ngày' : '—' }}"
+                                     data-stains="{{ $pesticide->stains_fruit ? 'Có thể dính màu trái' : 'An toàn / Không dính màu' }}"
+                                     data-manufacturer="{{ $pesticide->manufacturer ?? '—' }}"
+                                     data-frac="{{ $pesticide->frac_code ?? '—' }}"
+                                     data-irac="{{ $pesticide->irac_code ?? '—' }}"
+                                     data-img="{{ $pesticide->image_url ?? '' }}"
+                                     data-mixing-url="{{ route('phoi-tron.index', ['pesticide_id' => $pesticide->id]) }}"
+                                     class="pesticide-item group flex items-center gap-3.5 p-3 rounded-xl border border-gray-200/80 hover:border-indigo-400 hover:bg-indigo-50/20 bg-white transition shadow-sm hover:shadow cursor-pointer select-none">
 
                                     <div class="w-16 h-16 rounded-xl bg-gray-100 shrink-0 overflow-hidden border border-gray-200 flex items-center justify-center group-hover:scale-105 transition">
                                         @if($pesticide->image_url)
@@ -398,10 +453,11 @@
                                         @endif
                                     </div>
 
-                                    <div class="shrink-0 text-gray-300 group-hover:text-indigo-600 transition pl-1">
-                                        →
+                                    <div class="shrink-0 text-slate-400 group-hover:text-indigo-600 transition text-xs font-semibold pl-1 flex items-center gap-1">
+                                        <span class="hidden sm:inline">Chi tiết</span>
+                                        <span>🔍</span>
                                     </div>
-                                </a>
+                                </div>
                             @endforeach
                         </div>
                     </div>
@@ -572,5 +628,148 @@
                 applyFilter();
             }
         });
+
+        // ENGINEER TECHNICAL SPECIFICATION MODAL HANDLER
+        function moModalKyThuat(el) {
+            const ds = el.dataset;
+            document.getElementById('mName').textContent = ds.name || '—';
+            document.getElementById('mCat').textContent = ds.cat || 'Thuốc BVTV';
+            document.getElementById('mForm').textContent = ds.form || '—';
+            document.getElementById('mActive').textContent = ds.active || '—';
+            document.getElementById('mWater').textContent = ds.water || '—';
+            document.getElementById('mConcentration').textContent = ds.concentration || '—';
+            document.getElementById('mTarget').textContent = ds.target || '—';
+            document.getElementById('mCrops').textContent = ds.crops || '—';
+            document.getElementById('mIsolation').textContent = ds.isolation || '—';
+            document.getElementById('mStains').textContent = ds.stains || '—';
+            document.getElementById('mManufacturer').textContent = ds.manufacturer || '—';
+            document.getElementById('mUsage').textContent = ds.usage || 'Tuân thủ nghiêm ngặt nguyên tắc 4 đúng khi pha trộn và xử lý trên vườn.';
+
+            const fracEl = document.getElementById('mFrac');
+            if (ds.frac && ds.frac !== '—') {
+                fracEl.textContent = 'FRAC: ' + ds.frac;
+                fracEl.classList.remove('hidden');
+            } else if (ds.irac && ds.irac !== '—') {
+                fracEl.textContent = 'IRAC: ' + ds.irac;
+                fracEl.classList.remove('hidden');
+            } else {
+                fracEl.classList.add('hidden');
+            }
+
+            const imgEl = document.getElementById('mImg');
+            const phEl = document.getElementById('mPlaceholder');
+            if (ds.img && ds.img !== '') {
+                imgEl.src = ds.img;
+                imgEl.classList.remove('hidden');
+                phEl.classList.add('hidden');
+            } else {
+                imgEl.classList.add('hidden');
+                phEl.classList.remove('hidden');
+            }
+
+            document.getElementById('mMixingBtn').href = ds.mixingUrl || '{{ route('phoi-tron.index') }}';
+            document.getElementById('modalKyThuat').classList.remove('hidden');
+        }
+
+        function dongModalKyThuat() {
+            document.getElementById('modalKyThuat')?.classList.add('hidden');
+        }
+
+        document.getElementById('modalKyThuat')?.addEventListener('click', function(e) {
+            if (e.target === this) dongModalKyThuat();
+        });
     </script>
-</x-layouts.app>
+
+    <!-- ENGINEER TECHNICAL SPECIFICATION MODAL -->
+    <div id="modalKyThuat" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs hidden transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 text-white flex items-center justify-between border-b border-teal-800/40">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🔬</span>
+                    <div>
+                        <h3 class="text-sm font-black tracking-wide uppercase text-teal-300">THÔNG SỐ KỸ THUẬT & DỮ LIỆU NÔNG HỌC</h3>
+                        <p class="text-[11px] text-slate-400">Phân Hệ Kỹ Sư BVTV • Không chuyển hướng cửa hàng</p>
+                    </div>
+                </div>
+                <button type="button" onclick="dongModalKyThuat()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-xs">
+                <!-- Top info: Image + Name + Category -->
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 pb-4 border-b border-slate-100">
+                    <div class="w-24 h-24 rounded-2xl bg-slate-50 border border-slate-200 p-1.5 shrink-0 flex items-center justify-center overflow-hidden">
+                        <img id="mImg" src="" alt="" class="max-w-full max-h-full object-contain hidden">
+                        <span id="mPlaceholder" class="text-3xl">💊</span>
+                    </div>
+                    <div class="flex-1 text-center sm:text-left min-w-0">
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mb-1.5">
+                            <span id="mCat" class="px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 font-bold border border-teal-200"></span>
+                            <span id="mForm" class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-black border border-amber-200"></span>
+                            <span id="mFrac" class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 font-bold border border-purple-200"></span>
+                        </div>
+                        <h2 id="mName" class="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug"></h2>
+                        <div class="text-xs text-slate-600 mt-1">
+                            Hàm lượng / Quy chuẩn: <strong id="mConcentration" class="text-slate-900"></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Grid Specs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hoạt chất chính</div>
+                        <div id="mActive" class="text-xs font-extrabold text-emerald-800"></div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">💧 Lượng nước pha khuyến nghị</div>
+                        <div id="mWater" class="text-xs font-extrabold text-teal-800"></div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">🎯 Đối tượng phòng trừ</div>
+                        <div id="mTarget" class="text-xs font-semibold text-slate-800"></div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">🌳 Cây trồng đăng ký</div>
+                        <div id="mCrops" class="text-xs font-semibold text-slate-800"></div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">⏱️ Thời gian cách ly (PHI)</div>
+                        <div id="mIsolation" class="text-xs font-bold text-slate-800"></div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">🎨 Dính màu trái non</div>
+                        <div id="mStains" class="text-xs font-bold text-slate-800"></div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">🏢 Nhà sản xuất / Đăng ký</div>
+                    <div id="mManufacturer" class="text-xs font-semibold text-slate-800"></div>
+                </div>
+
+                <!-- Usage Notes -->
+                <div class="p-3 rounded-xl bg-teal-50/50 border border-teal-200/60 space-y-1">
+                    <div class="text-[11px] font-bold text-teal-800 uppercase tracking-wider">📋 Hướng dẫn kỹ thuật & Lưu ý phối trộn</div>
+                    <p id="mUsage" class="text-xs text-slate-700 leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Modal Footer with Engineer Actions -->
+            <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <button type="button" onclick="dongModalKyThuat()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition">
+                    Đóng
+                </button>
+                <div class="flex items-center gap-2">
+                    <a id="mMixingBtn" href="#" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs transition shadow-xs">
+                        <span>🚫</span>
+                        <span>Kiểm tra kỵ phối trộn thuốc này</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-layouts.engineer>

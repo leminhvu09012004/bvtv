@@ -1,6 +1,6 @@
-<x-layouts.app :title="$category->name">
+<x-layouts.storefront :title="$category->name">
 @php
-    $isAdmin = request()->has('admin') || str_contains(url()->previous(), 'quan-ly');
+    $isAdmin = auth()->check() && auth()->user()->role === 'admin';
 @endphp
 <div class="px-4 py-6 lg:px-8 lg:py-8 max-w-7xl mx-auto">
 
@@ -47,10 +47,6 @@
                    class="inline-flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-700 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors">
                     ← Quay lại trang trước
                 </a>
-                <a href="{{ route('danhmuc.xem', [$category->slug, 'admin' => 1]) }}"
-                   class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-amber-700 hover:bg-amber-50 px-2.5 py-2 rounded-lg transition border border-transparent hover:border-amber-200">
-                    <span>⚙️</span> Quản lý danh mục này
-                </a>
             @endif
         </div>
     </div>
@@ -65,11 +61,13 @@
                         Cảnh Báo Phối Trộn: Danh mục này không được trộn với những danh mục nào?
                     </h3>
                 </div>
+                @if(auth()->check() && in_array(auth()->user()->role, ['admin', 'engineer']))
                 <a href="{{ route('phoi-tron.index', ['cat1' => $category->id]) }}"
                     class="text-xs font-bold text-red-700 hover:text-red-800 hover:underline inline-flex items-center gap-1">
-                    <span>Xem công cụ phân tích danh mục</span>
+                    <span>Xem công cụ phân tích danh mục (Kỹ sư)</span>
                     <span>→</span>
                 </a>
+                @endif
             </div>
 
             <div class="p-5 space-y-3.5">
@@ -116,11 +114,13 @@
                                 @endif
                             </div>
 
+                            @if(auth()->check() && in_array(auth()->user()->role, ['admin', 'engineer']))
                             <a href="{{ route('phoi-tron.index', ['cat1' => $category->id, 'cat2' => $otherCat->id]) }}"
                                 class="inline-flex items-center justify-center gap-1 text-[11px] font-bold text-red-700 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg transition shadow-2xs">
                                 <span>⚡ Xem chi tiết kỵ phối trộn với {{ $otherCat->name }}</span>
                                 <span>→</span>
                             </a>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -258,4 +258,4 @@
         </div>
     </div>
 </div>
-</x-layouts.app>
+</x-layouts.storefront>

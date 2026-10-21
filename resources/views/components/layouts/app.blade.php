@@ -15,18 +15,27 @@
 
     <!-- Mobile header -->
     <header
-        class="lg:hidden sticky top-0 z-40 bg-green-700 text-white flex items-center justify-between px-4 py-3 shadow-md">
-        <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold text-lg">
-            🌿 Sổ Tay BVTV
+        class="lg:hidden sticky top-0 z-40 bg-slate-900 text-white flex items-center justify-between px-4 py-3 shadow-md">
+        <a href="{{ route('admin.inventory.index') }}" class="flex items-center gap-2 font-bold text-sm tracking-wide text-white">
+            <span>🛡️</span> BVTV Quản Trị
         </a>
-        <button id="mobile-menu-btn" class="p-1 rounded-md hover:bg-green-600 focus:outline-none" aria-label="Mở menu">
-            <svg id="icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg id="icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('home') }}"
+               target="_blank"
+               class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition"
+               title="Xem trang bán hàng">
+                <span>🌐</span>
+                <span class="text-[11px]">Cửa hàng</span>
+            </a>
+            <button id="mobile-menu-btn" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white focus:outline-none" aria-label="Mở menu">
+                <svg id="icon-open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg id="icon-close" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
     </header>
 
     <!-- Mobile sidebar overlay -->
@@ -38,74 +47,160 @@
         <!-- Sidebar -->
         <aside id="sidebar" class="
         fixed lg:static inset-y-0 left-0 z-40
-        w-52 bg-white border-r border-gray-200
+        w-60 bg-white border-r border-gray-200
         flex flex-col
         -translate-x-full lg:translate-x-0
         transition-transform duration-200
         lg:h-screen lg:sticky lg:top-0
     ">
             <!-- Brand -->
-            <div class="hidden lg:flex items-center gap-2 px-3.5 py-3 border-b border-gray-200">
-                <span class="text-xl">🌿</span>
+            <div class="hidden lg:flex items-center gap-2.5 px-4 py-3.5 border-b border-slate-800 bg-slate-900 text-white">
+                <span class="text-xl">🛡️</span>
                 <div class="min-w-0">
-                    <div class="font-bold text-green-700 text-sm leading-tight">Sổ Tay BVTV</div>
-                    <div class="text-[11px] text-gray-500">Thuốc BVTV Tây Nguyên</div>
+                    <div class="font-extrabold text-sm leading-tight tracking-wide text-white">BVTV QUẢN TRỊ</div>
+                    <div class="text-[10px] text-emerald-400 font-medium">Hệ Thống Kho & Dữ Liệu</div>
                 </div>
             </div>
 
             <!-- Nav -->
-            <nav class="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
-                <div class="px-2 pt-1 pb-1">
-                    <p class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Tra Cứu (User)</p>
-                </div>
-                <a href="{{ route('home') }}"
-                    class="sidebar-link {{ request()->routeIs('home') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                    🏠 Trang chủ
-                </a>
-                <a href="{{ route('thuoc.tra-cuu') }}"
-                    class="sidebar-link {{ (request()->routeIs('thuoc.tra-cuu') || (request()->routeIs('thuoc.danh-sach') && !request()->routeIs('thuoc.quan-ly'))) ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                    🔍 Tra cứu thuốc
-                </a>
-                <a href="{{ route('hoatchat.index') }}"
-                    class="sidebar-link {{ request()->routeIs('hoatchat.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                    ⚗️ Tra cứu hoạt chất
-                </a>
-                <a href="{{ route('benh.danh-sach') }}"
-                    class="sidebar-link {{ (request()->routeIs('benh.*') && !request()->routeIs('benh.quan-ly*')) ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                    🌿 Các bài thuốc
-                </a>
-                <a href="{{ route('phoi-tron.index') }}"
-                    class="sidebar-link {{ request()->routeIs('phoi-tron.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                    🚫 Kỵ phối trộn thuốc
-                </a>
+            <nav class="flex-1 overflow-y-auto py-3 px-2.5 space-y-4">
 
-                <div class="pt-3 pb-1 px-2 border-t border-gray-100 mt-2">
-                    <p class="text-[10px] uppercase tracking-wider text-amber-700 font-bold flex items-center gap-1">
-                        <span>⚙️</span> Quản Trị (Admin)
-                    </p>
+                <!-- Nhóm 1: Quản Trị Kho & Sổ Cái -->
+                <div class="space-y-0.5">
+                    <div class="px-2 pb-1.5">
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                            <span>📦</span> KHO VẬN & SỔ CÁI
+                        </p>
+                    </div>
+                    <a href="{{ route('admin.warehouses.index') }}"
+                        class="sidebar-link {{ request()->routeIs('admin.warehouses.*') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        🏢 Quản lý chi nhánh
+                    </a>
+                    <a href="{{ route('admin.inventory.index') }}"
+                        class="sidebar-link {{ request()->routeIs('admin.inventory.index') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        📦 Tồn kho đa chi nhánh
+                    </a>
+                    <a href="{{ route('admin.inventory.receipts') }}"
+                        class="sidebar-link {{ request()->routeIs('admin.inventory.receipts*') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        📥 Nhập kho nhà cung cấp
+                    </a>
+                    <a href="{{ route('admin.inventory.issues') }}"
+                        class="sidebar-link {{ request()->routeIs('admin.inventory.issues*') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        📤 Xuất kho hàng hóa
+                    </a>
+                    <a href="{{ route('admin.inventory.transfers') }}"
+                        class="sidebar-link {{ request()->routeIs('admin.inventory.transfers*') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        🚚 Chuyển kho liên chi nhánh
+                    </a>
+                    <a href="{{ route('admin.inventory.counts') }}"
+                        class="sidebar-link {{ request()->routeIs('admin.inventory.counts*') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        📋 Kiểm kê & Cân đối kho
+                    </a>
+                    <a href="{{ route('admin.inventory.movements') }}"
+                        class="sidebar-link {{ request()->routeIs('admin.inventory.movements*') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        📜 Sổ cái biến động kho
+                    </a>
                 </div>
-                <a href="{{ route('thuoc.quan-ly') }}"
-                    class="sidebar-link {{ request()->routeIs('thuoc.quan-ly') ? 'bg-amber-50 text-amber-900 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                    💊 Quản lý thuốc
-                </a>
-                <a href="{{ route('danhmuc.danh-sach') }}"
-                    class="sidebar-link {{ request()->routeIs('danhmuc.*') ? 'bg-amber-50 text-amber-900 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                    📁 Quản lý danh mục
-                </a>
-                <a href="{{ route('benh.quan-ly') }}"
-                    class="sidebar-link {{ request()->routeIs('benh.quan-ly*') ? 'bg-amber-50 text-amber-900 font-semibold' : 'text-gray-700 hover:bg-gray-100' }}">
-                    🌿 Quản lý bài thuốc
-                </a>
-                <a href="{{ route('thuoc.them') }}" class="sidebar-link text-gray-700 hover:bg-gray-100">
-                    ➕ Thêm thuốc mới
-                </a>
-                <a href="{{ route('thuoc.xuat-csv') }}" class="sidebar-link text-gray-700 hover:bg-gray-100">
-                    📥 Xuất CSV
-                </a>
-                <a href="{{ route('thuoc.nhap-csv') }}" class="sidebar-link text-gray-700 hover:bg-gray-100">
-                    📤 Import CSV
-                </a>
+
+                <!-- Nhóm 2: Quản Trị Danh Mục & Dữ Liệu Thuốc -->
+                <div class="space-y-0.5 pt-2 border-t border-slate-100">
+                    <div class="px-2 pb-1.5">
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                            <span>💊</span> SẢN PHẨM & DANH MỤC
+                        </p>
+                    </div>
+                    <a href="{{ route('thuoc.quan-ly') }}"
+                        class="sidebar-link {{ request()->routeIs('thuoc.quan-ly') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        💊 Quản lý thuốc BVTV
+                    </a>
+                    <a href="{{ route('thuoc.them') }}"
+                        class="sidebar-link {{ request()->routeIs('thuoc.them') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        ➕ Thêm thuốc mới
+                    </a>
+                    <a href="{{ route('danhmuc.danh-sach') }}"
+                        class="sidebar-link {{ request()->routeIs('danhmuc.*') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        📁 Quản lý danh mục
+                    </a>
+                    <a href="{{ route('benh.quan-ly') }}"
+                        class="sidebar-link {{ request()->routeIs('benh.quan-ly*') ? 'bg-emerald-50 text-emerald-800 font-bold border-l-2 border-emerald-600' : 'text-slate-700 hover:bg-slate-100' }}">
+                        🌿 Quản lý bài thuốc & bệnh
+                    </a>
+                    <a href="{{ route('thuoc.xuat-csv') }}"
+                        class="sidebar-link text-slate-600 hover:bg-slate-100">
+                        📥 Xuất báo cáo CSV
+                    </a>
+                    <a href="{{ route('thuoc.nhap-csv') }}"
+                        class="sidebar-link text-slate-600 hover:bg-slate-100">
+                        📤 Import dữ liệu CSV
+                    </a>
+                </div>
+
+                <!-- Nhóm 3: Tiện Ích Chuyển Phân Hệ Nhanh -->
+                <div class="space-y-1 pt-2 border-t border-slate-100">
+                    <div class="px-2 pb-1">
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                            <span>🔗</span> CHUYỂN PHÂN HỆ
+                        </p>
+                    </div>
+                    <a href="{{ route('home') }}"
+                        target="_blank"
+                        class="sidebar-link text-slate-600 hover:bg-slate-100 hover:text-emerald-700 justify-between group">
+                        <span class="flex items-center gap-1.5">
+                            <span>🌐</span> Xem Cửa Hàng
+                        </span>
+                        <span class="text-[10px] text-slate-400 group-hover:text-emerald-600">↗</span>
+                    </a>
+                    <a href="{{ route('phoi-tron.index') }}"
+                        class="sidebar-link text-slate-600 hover:bg-slate-100 hover:text-teal-700 justify-between group">
+                        <span class="flex items-center gap-1.5">
+                            <span>🔬</span> Phân Hệ Kỹ Sư BVTV
+                        </span>
+                        <span class="text-[10px] text-slate-400 group-hover:text-teal-600">➔</span>
+                    </a>
+                    <a href="{{ route('pos.index') }}"
+                        class="sidebar-link text-slate-600 hover:bg-slate-100 hover:text-blue-700 justify-between group">
+                        <span class="flex items-center gap-1.5">
+                            <span>💻</span> Mở Bàn Bán POS
+                        </span>
+                        <span class="text-[10px] text-slate-400 group-hover:text-blue-600">➔</span>
+                    </a>
+                </div>
+
             </nav>
+
+            <!-- Sidebar User / Auth Footer -->
+            <div class="p-3 border-t border-gray-200 bg-gray-50/80">
+                @auth
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="min-w-0 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </span>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-gray-900 truncate">{{ auth()->user()->name }}</p>
+                                <p class="text-[10px] text-gray-500 font-medium capitalize">{{ auth()->user()->role }}</p>
+                            </div>
+                        </div>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-white rounded-lg transition" title="Đăng xuất">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('login') }}" class="flex-1 text-center py-1.5 px-2 text-xs font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
+                            Đăng nhập
+                        </a>
+                        <a href="{{ route('register') }}" class="flex-1 text-center py-1.5 px-2 text-xs font-semibold bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                            Đăng ký
+                        </a>
+                    </div>
+                @endauth
+            </div>
         </aside>
 
         <!-- Main content -->
@@ -247,6 +342,89 @@
         }
         window.moModalAnh = moModalAnh;
         window.dongModalAnh = dongModalAnh;
+
+        // Global Toast Notification
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `p-3.5 rounded-2xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto ${
+                type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
+            }`;
+            toast.innerHTML = `<span>${type === 'error' ? '⚠️' : '✅'}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+        // Universal AJAX Action Form Handler (One-Click Actions)
+        document.addEventListener('submit', async function (e) {
+            const form = e.target.closest('.ajax-action-form');
+            if (!form) return;
+
+            e.preventDefault();
+
+            const confirmMsg = form.dataset.confirm;
+            if (confirmMsg && !confirm(confirmMsg)) {
+                return;
+            }
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalContent = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>⏳ Đang xử lý...</span>';
+            }
+
+            try {
+                const res = await fetch(form.action, {
+                    method: form.method || 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    },
+                    body: new FormData(form)
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showToast(data.message || 'Thao tác thành công!', 'success');
+
+                    const tr = form.closest('tr');
+                    if (tr) {
+                        const badgeCell = tr.querySelector('.status-badge-cell');
+                        if (badgeCell && data.status_label) {
+                            badgeCell.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">${data.status_label}</span>`;
+                        }
+
+                        const actionCell = form.closest('td');
+                        if (actionCell) {
+                            actionCell.innerHTML = `<span class="text-xs text-slate-400">Đã chốt sổ</span>`;
+                        }
+                    }
+                } else {
+                    showToast(data.message || 'Có lỗi xảy ra, vui lòng thử lại.', 'error');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalContent;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Lỗi kết nối máy chủ.', 'error');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalContent;
+                }
+            }
+        });
+        window.showToast = showToast;
     </script>
 </body>
 

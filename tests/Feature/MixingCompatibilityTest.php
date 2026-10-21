@@ -171,7 +171,12 @@ class MixingCompatibilityTest extends TestCase
         $resp->assertStatus(200);
         $resp->assertSee('Lưu Ý Phối Trộn');
         $resp->assertSee('Tuyệt đối không phối với các nhóm sau:');
-        $resp->assertSee('Thử phối thuốc này');
+        $resp->assertDontSee('Thử phối thuốc này');
+
+        // Kỹ sư đăng nhập sẽ thấy nút phối thuốc
+        $engineer = \App\Models\User::factory()->create(['role' => 'engineer']);
+        $respEngineer = $this->actingAs($engineer)->get(route('thuoc.xem', $thuoc));
+        $respEngineer->assertSee('Thử phối thuốc này');
     }
 
     /** Test: AJAX kiểm tra danh mục Thuốc trừ cỏ với danh mục khác trả về cấm kỵ tuyệt đối. */

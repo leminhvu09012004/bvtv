@@ -110,143 +110,228 @@ class MixingCompatibilityService
     ];
 
     /**
-     * Bảng các quy tắc tương kỵ chuẩn mực nông học.
+     * Bảng các quy tắc tương kỵ chuẩn mực nông học có dẫn chứng khoa học và trạng thái 4 mức độ:
+     * FORBIDDEN (Cấm kỵ), AVOID (Nên tránh / Thận trọng), COMPATIBLE (Tương thích), UNKNOWN (Chưa rõ)
      */
     protected array $rules = [
         // 1. Dầu khoáng + Lưu huỳnh
         [
+            'rule_code' => 'R-OIL-SULFUR-01',
             'pair' => ['mineral_oil', 'sulfur'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ TUYỆT ĐỐI: Dầu khoáng + Lưu huỳnh',
-            'reason' => 'Dầu khoáng phá vỡ lớp cutin sáp bảo vệ biểu bì lá cây, khiến Lưu huỳnh thấm ồ ạt qua khí khổng và màng tế bào.',
+            'reason' => 'Dầu khoáng phá vỡ lớp cutin sáp bảo vệ biểu bì lá cây, khiến Lưu huỳnh thấm ồ ạt qua khí khổng và màng tế bào dưới ánh nắng tạo phản ứng quang hóa.',
             'consequence' => 'Gây cháy lá dữ dội, rụng lá non hàng loạt, nám và rụng trái. Khoảng cách phun 2 loại thuốc này tối thiểu phải cách nhau 14 đến 30 ngày.',
             'advice' => 'Tuyệt đối không pha chung vào cùng 1 phuy hoặc phun sát ngày nhau.',
+            'source_type' => 'official_standard',
+            'source_reference' => 'FAO Guidelines on Pesticide Tank-Mix Safety and Specifications & UC IPM Sulfur Guidelines',
+            'confidence' => 'HIGH',
         ],
 
         // 2. Dầu khoáng + Đồng vô cơ / Captan
         [
+            'rule_code' => 'R-CU-OIL-01',
             'pair' => ['mineral_oil', 'inorganic_copper'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Dầu khoáng + Gốc Đồng vô cơ',
             'reason' => 'Dầu khoáng giữ ion Đồng bám quá chặt và tăng nồng độ thẩm thấu ion Cu²⁺ vượt ngưỡng chịu đựng của mô tế bào biểu bì thực vật.',
             'consequence' => 'Rất dễ gây ngộ độc đồng (Phytotoxicity), sém mép lá, đốm cháy trên vỏ quả non.',
             'advice' => 'Nên phun riêng rẽ, cách nhau tối thiểu 7 - 10 ngày.',
+            'source_type' => 'manufacturer_label',
+            'source_reference' => 'Nhãn Bordeaux & Cẩm nang BVTV Cục Bảo vệ Thực vật 2024',
+            'confidence' => 'HIGH',
         ],
 
         // 3. Đồng vô cơ + Chế phẩm Vi sinh
         [
+            'rule_code' => 'R-CU-BIO-01',
             'pair' => ['inorganic_copper', 'biopesticide'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Gốc Đồng vô cơ + Chế phẩm Vi sinh vật',
             'reason' => 'Ion Đồng vô cơ (Cu²⁺) là chất sát khuẩn phổ rộng cực mạnh, tiêu diệt cả nấm và vi khuẩn không chọn lọc.',
             'consequence' => 'Tiêu diệt hoàn toàn các bào tử nấm đối kháng (Trichoderma, Beauveria, Metarhizium...) và vi khuẩn có ích (Bacillus). Làm mất 100% hiệu lực của chế phẩm vi sinh sinh học.',
             'advice' => 'Phun cách nhau ít nhất 10 - 15 ngày để hệ vi sinh có ích kịp phát triển mật số.',
+            'source_type' => 'scientific_paper',
+            'source_reference' => 'Tạp chí Nông nghiệp & PTNT - Đánh giá tác động của ion đồng đến bào tử Trichoderma viride',
+            'confidence' => 'HIGH',
         ],
 
         // 4. Kháng sinh + Vi sinh
         [
+            'rule_code' => 'R-ANTI-BIO-01',
             'pair' => ['antibiotic', 'biopesticide'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Thuốc kháng sinh + Chế phẩm Vi sinh vật',
             'reason' => 'Các loại kháng sinh (Kasugamycin, Streptomycin...) diệt khuẩn sẽ tiêu diệt hoặc ức chế các dòng vi sinh có ích trong chế phẩm sinh học.',
             'consequence' => 'Làm chết vi sinh vật đối kháng có ích trong đất và trên tán cây.',
             'advice' => 'Nếu dùng nấm/khuẩn đối kháng thì không phối chung thuốc kháng sinh hóa học.',
+            'source_type' => 'scientific_paper',
+            'source_reference' => 'Viện Di truyền Nông nghiệp - Khảo nghiệm tương thích chế phẩm sinh học và kháng sinh nông nghiệp',
+            'confidence' => 'HIGH',
         ],
 
         // 5. Tính Kiềm + Lân hữu cơ / Carbamate / Cúc tổng hợp
         [
+            'rule_code' => 'R-ALK-ORGANO-01',
             'pair' => ['alkaline', 'organophosphate'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Thuốc tính Kiềm + Nhóm Lân hữu cơ',
-            'reason' => 'Môi trường kiềm (pH > 7.5 - 8.0) làm thủy phân cực nhanh liên kết este của hoạt chất Lân hữu cơ.',
+            'reason' => 'Môi trường kiềm (pH > 7.5 - 8.0) làm thủy phân cực nhanh liên kết este của hoạt chất Lân hữu cơ (Alkaline Hydrolysis).',
             'consequence' => 'Hoạt chất bị phân hủy thành dạng mất hoạt tính trong vòng vài chục phút, mất hoàn toàn khả năng diệt sâu rầy.',
             'advice' => 'Không pha chung thuốc Lân hữu cơ với vôi, dung dịch Boóc-đô hay nước có độ kiềm cao.',
+            'source_type' => 'official_standard',
+            'source_reference' => 'FAO Pesticide Specifications - pH stability of Organophosphorus compounds',
+            'confidence' => 'HIGH',
         ],
         [
+            'rule_code' => 'R-ALK-CARB-01',
             'pair' => ['alkaline', 'carbamate'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Thuốc tính Kiềm + Nhóm Carbamate',
             'reason' => 'Gốc Carbamate bị phá hủy cấu trúc phân tử khi tiếp xúc môi trường kiềm (Alkaline Hydrolysis).',
             'consequence' => 'Làm giảm hoặc mất 100% hiệu lực trừ rầy, sâu đục thân.',
             'advice' => 'Tuyệt đối không pha chung với vôi hoặc nước Boóc-đô.',
+            'source_type' => 'official_standard',
+            'source_reference' => 'Sổ tay sử dụng hóa chất BVTV an toàn - Cục BVTV Việt Nam',
+            'confidence' => 'HIGH',
         ],
         [
+            'rule_code' => 'R-ALK-PYRE-01',
             'pair' => ['alkaline', 'pyrethroid'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Thuốc tính Kiềm + Nhóm Cúc tổng hợp (Pyrethroid)',
             'reason' => 'Cúc tổng hợp (Cypermethrin, Lambda-Cyhalothrin...) phân hủy rất nhanh trong môi trường kiềm.',
             'consequence' => 'Mất tác dụng hạ gục sâu hại.',
             'advice' => 'Dùng nước sạch trung tính (pH 5.5 - 6.5) để pha cúc tổng hợp.',
+            'source_type' => 'official_standard',
+            'source_reference' => 'WHO Specifications and Evaluations for Public Health Pesticides - Pyrethroids',
+            'confidence' => 'HIGH',
         ],
 
         // 6. Tính Kiềm + Vi sinh
         [
+            'rule_code' => 'R-ALK-BIO-01',
             'pair' => ['alkaline', 'biopesticide'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Thuốc tính Kiềm + Chế phẩm Vi sinh',
             'reason' => 'pH cao phá vỡ màng tế bào và ức chế khả năng nảy mầm của bào tử nấm đối kháng Trichoderma, Metarhizium.',
             'consequence' => 'Làm bất hoạt chế phẩm sinh học.',
             'advice' => 'Vi sinh vật chỉ hoạt động tốt ở môi trường trung tính hoặc hơi chua nhẹ.',
+            'source_type' => 'scientific_paper',
+            'source_reference' => 'Journal of Applied Microbiology - Effect of pH on biocontrol fungi germination',
+            'confidence' => 'HIGH',
         ],
 
         // 7. Đồng vô cơ + Fosetyl-Aluminium (Aliette)
         [
+            'rule_code' => 'R-CU-FOSETYL-01',
             'pair' => ['inorganic_copper', 'fosetyl_al'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Gốc Đồng vô cơ + Fosetyl-Aluminium (Aliette)',
             'reason' => 'Fosetyl-Al có tính axit mạnh phản ứng với ion Đồng tạo kết tủa và giải phóng lượng ion đồng tự do đột ngột ở nồng độ cao.',
             'consequence' => 'Gây cháy lá non, rụng đọt và ngộ độc cây trồng.',
             'advice' => 'Phun riêng 2 loại này, không pha chung vào cùng 1 phuy.',
+            'source_type' => 'manufacturer_label',
+            'source_reference' => 'Bayer CropScience Technical Guide for Aliette 800WG Tank-Mix Exclusions',
+            'confidence' => 'HIGH',
         ],
 
         // 8. Đồng vô cơ + Axit amin / Đạm hữu cơ
         [
+            'rule_code' => 'R-CU-AMINO-01',
             'pair' => ['inorganic_copper', 'acid_amino'],
+            'status' => 'AVOID',
             'level' => 'warning',
+            'priority' => 100,
             'title' => 'THẬN TRỌNG: Gốc Đồng vô cơ + Phân bón Axit Amin',
             'reason' => 'Axit amin tạo phức càng cua chelate hóa không bền với ion Đồng vô cơ, dễ làm biến tính đạm sinh học hoặc phóng thích Cu tự do gây cháy chóp lá.',
             'consequence' => 'Làm giảm tác dụng của axit amin và tăng nguy cơ sém mép lá non.',
             'advice' => 'Nên phun riêng thuốc gốc đồng làm sạch vườn trước, sau 3 - 5 ngày mới phun amino acid bồi bổ cây.',
+            'source_type' => 'extension_manual',
+            'source_reference' => 'Tài liệu hướng dẫn dinh dưỡng cây ăn trái Viện Cây ăn quả Miền Nam (SOFRI)',
+            'confidence' => 'HIGH',
         ],
 
         // 9. Canxi cao + Lân cao / Sunfat
         [
+            'rule_code' => 'R-CA-PHOSPHATE-01',
             'pair' => ['high_calcium', 'high_phosphorus'],
+            'status' => 'FORBIDDEN',
             'level' => 'danger',
+            'priority' => 100,
             'title' => 'CẤM KỴ: Phân bón Canxi cao + Lân cao (MKP) hoặc Sunfat (S)',
             'reason' => 'Ion Canxi (Ca²⁺) kết hợp ngay với gốc Photphat (PO₄³⁻) hoặc Sunfat (SO₄²⁻) tạo thành Canxi Photphat hoặc Canxi Sunfat (thạch cao rắn không tan).',
             'consequence' => 'Gây kết tủa trắng đục, đóng cặn dưới đáy phuy, nghẹt béc phun cực kỳ nặng, cây hoàn toàn không thể hấp thụ được.',
             'advice' => 'Không bao giờ pha chung phân bón Canxi/Canxi Bo với MKP, MAP hoặc phân có chứa Lưu huỳnh/Sunfat.',
+            'source_type' => 'official_standard',
+            'source_reference' => 'Sổ tay Hòa tan & Tương thích Phân bón Nông nghiệp hòa tan (Haifa Fertilizers Manual)',
+            'confidence' => 'HIGH',
         ],
 
         // 10. Trùng nhóm FRAC Triazole
         [
+            'rule_code' => 'R-RESIST-TRIAZOLE-01',
             'pair' => ['triazole', 'triazole'],
+            'status' => 'AVOID',
             'level' => 'warning',
+            'priority' => 100,
             'title' => 'CẢNH BÁO: Trộn 2 thuốc cùng nhóm Triazole (FRAC 3)',
-            'reason' => 'Cả 2 hoạt chất đều có cùng cơ chế tác động ức chế sinh tổng hợp ergosterol màng tế bào nấm (nhóm DMI).',
+            'reason' => 'Cả 2 hoạt chất đều có cùng cơ chế tác động ức chế sinh tổng hợp ergosterol màng tế bào nấm (nhóm DMI - FRAC 3).',
             'consequence' => 'Không làm tăng phổ phòng trị, gây lãng phí chi phí thuốc và gia tăng nguy cơ tạo dòng nấm kháng thuốc nhóm Triazole.',
             'advice' => 'Nên luân phiên hoặc phối 1 thuốc Triazole (nội hấp) với 1 hoạt chất bảo vệ tiếp xúc đa điểm như Mancozeb hoặc Propineb để tối ưu hiệu lực.',
+            'source_type' => 'official_standard',
+            'source_reference' => 'FRAC (Fungicide Resistance Action Committee) Mode of Action Classification 2024',
+            'confidence' => 'HIGH',
         ],
 
         // 11. Trùng nhóm IRAC Neonicotinoid
         [
+            'rule_code' => 'R-RESIST-NEONIC-01',
             'pair' => ['neonicotinoid', 'neonicotinoid'],
+            'status' => 'AVOID',
             'level' => 'warning',
+            'priority' => 100,
             'title' => 'CẢNH BÁO: Trộn 2 thuốc cùng nhóm Neonicotinoid (IRAC 4A)',
             'reason' => 'Cùng cơ chế tác động lên thụ thể Nicotinic acetylcholine của hệ thần kinh côn trùng.',
             'consequence' => 'Dễ làm rầy xanh, rầy nâu, bọ trĩ nhanh hình thành tính kháng thuốc chéo.',
             'advice' => 'Nên phối Neonicotinoid với nhóm ức chế lột xác (Buprofezin) hoặc nhóm điều hòa kênh Clo (Abamectin/Emamectin).',
+            'source_type' => 'official_standard',
+            'source_reference' => 'IRAC (Insecticide Resistance Action Committee) MoA Classification v10.4',
+            'confidence' => 'HIGH',
         ],
 
         // 12. Trùng nhóm IRAC Pyrethroid
         [
+            'rule_code' => 'R-RESIST-PYRE-01',
             'pair' => ['pyrethroid', 'pyrethroid'],
+            'status' => 'AVOID',
             'level' => 'warning',
+            'priority' => 100,
             'title' => 'CẢNH BÁO: Trộn 2 thuốc cùng nhóm Cúc tổng hợp (IRAC 3A)',
             'reason' => 'Cùng cơ chế tác động lên kênh Natri sợi thần kinh.',
             'consequence' => 'Tăng nguy cơ kháng thuốc và có thể gây nóng đọt, cháy rìa lá nếu cộng dồn nồng độ nhũ dầu quá cao.',
             'advice' => 'Nên phối 1 loại cúc tiếp xúc với 1 loại nội hấp lưu dẫn khác cơ chế.',
+            'source_type' => 'official_standard',
+            'source_reference' => 'IRAC MoA Mode of Action Guidelines for Pyrethroids',
+            'confidence' => 'HIGH',
         ],
     ];
 
@@ -393,49 +478,114 @@ class MixingCompatibilityService
         $conflicts = [];
         $dangerCount = 0;
         $warningCount = 0;
+        $activeStatus = 'UNKNOWN';
 
-        foreach ($this->rules as $rule) {
-            [$reqA, $reqB] = $rule['pair'];
+        // 1. Kiểm tra Rule ưu tiên từ Cơ sở dữ liệu (Product-specific: 200 > Group-specific: 100)
+        $dbRules = $this->lookupDbRules($p1, $p2, $tags1, $tags2);
+        $hasProductSpecificRule = false;
 
-            $match = false;
-            if ($reqA === $reqB) {
-                // Kiểm tra cùng tag (ví dụ cùng triazole hoặc cùng neonicotinoid)
-                if (in_array($reqA, $tags1, true) && in_array($reqB, $tags2, true)) {
-                    $match = true;
-                }
-            } else {
-                if (
-                    (in_array($reqA, $tags1, true) && in_array($reqB, $tags2, true)) ||
-                    (in_array($reqB, $tags1, true) && in_array($reqA, $tags2, true))
-                ) {
-                    $match = true;
-                }
+        foreach ($dbRules as $dbr) {
+            if ($dbr->scope === 'product_specific' || $dbr->priority >= 200) {
+                $hasProductSpecificRule = true;
             }
 
-            if ($match) {
-                $conflicts[] = $rule;
-                if ($rule['level'] === 'danger') {
-                    $dangerCount++;
-                } elseif ($rule['level'] === 'warning') {
-                    $warningCount++;
+            $conflicts[] = [
+                'rule_code' => $dbr->rule_code,
+                'level' => match ($dbr->status) {
+                    'FORBIDDEN' => 'danger',
+                    'AVOID' => 'warning',
+                    'COMPATIBLE' => 'safe',
+                    default => 'info',
+                },
+                'status' => $dbr->status,
+                'priority' => $dbr->priority,
+                'title' => $dbr->title,
+                'reason' => $dbr->reason,
+                'consequence' => $dbr->reason . ($dbr->conditions ? " (Điều kiện: {$dbr->conditions})" : ''),
+                'advice' => $dbr->advice,
+                'source_type' => $dbr->source_type,
+                'source_reference' => $dbr->source_reference,
+                'confidence' => $dbr->confidence,
+            ];
+
+            if ($dbr->status === 'FORBIDDEN') {
+                $dangerCount++;
+                $activeStatus = 'FORBIDDEN';
+            } elseif ($dbr->status === 'AVOID') {
+                $warningCount++;
+                if ($activeStatus !== 'FORBIDDEN') $activeStatus = 'AVOID';
+            } elseif ($dbr->status === 'COMPATIBLE') {
+                $activeStatus = 'COMPATIBLE';
+            }
+        }
+
+        // 2. Kiểm tra bộ luật mẫu chuẩn hóa (built-in rules) nếu KHÔNG CÓ rule cấp sản phẩm ghi đè
+        if (!$hasProductSpecificRule) {
+            foreach ($this->rules as $rule) {
+                [$reqA, $reqB] = $rule['pair'];
+
+                $match = false;
+                if ($reqA === $reqB) {
+                    // Kiểm tra cùng tag (ví dụ cùng triazole hoặc cùng neonicotinoid)
+                    if (in_array($reqA, $tags1, true) && in_array($reqB, $tags2, true)) {
+                        $match = true;
+                    }
+                } else {
+                    if (
+                        (in_array($reqA, $tags1, true) && in_array($reqB, $tags2, true)) ||
+                        (in_array($reqB, $tags1, true) && in_array($reqA, $tags2, true))
+                    ) {
+                        $match = true;
+                    }
+                }
+
+                if ($match) {
+                    // Tránh trùng nếu đã có rule tương tự từ DB
+                    $alreadyExists = false;
+                    foreach ($conflicts as $ex) {
+                        if (isset($ex['rule_code']) && $ex['rule_code'] === ($rule['rule_code'] ?? '')) {
+                            $alreadyExists = true;
+                            break;
+                        }
+                    }
+
+                    if (!$alreadyExists) {
+                        $conflicts[] = $rule;
+                        if ($rule['level'] === 'danger') {
+                            $dangerCount++;
+                            $activeStatus = 'FORBIDDEN';
+                        } elseif ($rule['level'] === 'warning') {
+                            $warningCount++;
+                            if ($activeStatus !== 'FORBIDDEN') $activeStatus = 'AVOID';
+                        }
+                    }
                 }
             }
         }
 
-        // Kiểm tra tương kỵ về dạng thuốc (ví dụ 2 loại nhũ dầu EC nồng độ cao)
+        // 3. Kiểm tra tương kỵ về dạng thuốc (ví dụ 2 loại nhũ dầu EC nồng độ cao)
         $form1 = $this->detectFormType($p1);
         $form2 = $this->detectFormType($p2);
 
         if ($form1 === 'EC' && $form2 === 'EC') {
             $conflicts[] = [
+                'rule_code' => 'R-FORM-EC-EC',
                 'level' => 'warning',
+                'status' => 'AVOID',
                 'title' => 'LƯU Ý DẠNG THUỐC: Cả 2 sản phẩm đều là Dạng Nhũ Dầu (EC)',
                 'reason' => 'Hai thuốc dạng EC chứa lượng lớn dung môi và chất nhũ hóa hữu cơ.',
                 'consequence' => 'Nếu hòa tan trực tiếp cùng lúc vào ít nước, nhũ tương có thể bị phá vỡ gây tách lớp hoặc làm tăng độ nóng của dung dịch phun, dễ gây bỏng bông, sém đọt non.',
                 'advice' => 'Cần pha loãng từng loại riêng biệt vào xô nước lớn trước khi đổ chung vào phuy phun. Không pha ở liều quá đậm đặc.',
+                'source_type' => 'extension_manual',
+                'source_reference' => 'Cẩm nang Kỹ thuật Pha trộn và Sử dụng Thuốc BVTV an toàn hiệu quả',
+                'confidence' => 'HIGH',
             ];
             $warningCount++;
+            if ($activeStatus !== 'FORBIDDEN') $activeStatus = 'AVOID';
         }
+
+        // 4. Kiểm tra Quản lý tính kháng độc lập (Resistance Management: FRAC / IRAC / HRAC)
+        $resistanceWarnings = $this->checkResistanceSeparation($p1, $p2);
 
         // Thứ tự pha khuyến cáo
         $mixingOrder = $this->determineMixingOrder([$p1, $p2]);
@@ -443,19 +593,146 @@ class MixingCompatibilityService
         $status = 'safe';
         if ($dangerCount > 0) {
             $status = 'danger';
+            $activeStatus = 'FORBIDDEN';
         } elseif ($warningCount > 0) {
             $status = 'warning';
+            $activeStatus = 'AVOID';
+        } elseif ($activeStatus === 'UNKNOWN' && empty($conflicts)) {
+            $activeStatus = 'UNKNOWN';
         }
 
         return [
             'status' => $status,
+            'compatibility_status' => $activeStatus, // FORBIDDEN, AVOID, COMPATIBLE, UNKNOWN
             'pesticide_1' => $p1,
             'pesticide_2' => $p2,
             'tags_1' => $tags1,
             'tags_2' => $tags2,
             'conflicts' => $conflicts,
+            'resistance_warnings' => $resistanceWarnings,
             'mixing_order' => $mixingOrder,
         ];
+    }
+
+    /**
+     * Tra cứu bộ quy tắc động trong bảng compatibility_rules
+     * Hierarchy ưu tiên: Product-specific (priority 200) > Group-specific (priority 100)
+     */
+    protected function lookupDbRules(Pesticide $p1, Pesticide $p2, array $tags1, array $tags2): Collection
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('compatibility_rules')) {
+                return collect();
+            }
+
+            // 1. Tìm product-specific rules (ưu tiên 200)
+            $pId1 = (string) $p1->id;
+            $pId2 = (string) $p2->id;
+
+            $productRules = \App\Models\CompatibilityRule::where('is_active', true)
+                ->where('scope', 'product_specific')
+                ->where(function ($q) use ($pId1, $pId2) {
+                    $q->where(fn($sub) => $sub->where('entity_a_key', $pId1)->where('entity_b_key', $pId2))
+                      ->orWhere(fn($sub) => $sub->where('entity_a_key', $pId2)->where('entity_b_key', $pId1));
+                })
+                ->orderByDesc('priority')
+                ->get();
+
+            if ($productRules->isNotEmpty()) {
+                return $productRules;
+            }
+
+            // 2. Tìm group-specific rules (ưu tiên 100)
+            $allPairs = [];
+            foreach ($tags1 as $t1) {
+                foreach ($tags2 as $t2) {
+                    $allPairs[] = [$t1, $t2];
+                }
+            }
+
+            if (empty($allPairs)) {
+                return collect();
+            }
+
+            $groupRules = \App\Models\CompatibilityRule::where('is_active', true)
+                ->where('scope', 'group_specific')
+                ->where(function ($q) use ($allPairs) {
+                    foreach ($allPairs as $pair) {
+                        $q->orWhere(function ($sub) use ($pair) {
+                            $sub->where('entity_a_key', $pair[0])->where('entity_b_key', $pair[1]);
+                        })->orWhere(function ($sub) use ($pair) {
+                            $sub->where('entity_a_key', $pair[1])->where('entity_b_key', $pair[0]);
+                        });
+                    }
+                })
+                ->orderByDesc('priority')
+                ->get();
+
+            return $groupRules;
+        } catch (\Throwable $e) {
+            return collect();
+        }
+    }
+
+    /**
+     * Phân tách rạch ròi Quản Lý Tính Kháng (Resistance Management) khỏi Tương kỵ vật lý/hóa học.
+     * Cùng FRAC/IRAC/HRAC không phải là kết tủa/cháy lá, mà là cảnh báo dịch tễ học và luân phiên thuốc.
+     */
+    protected function checkResistanceSeparation(Pesticide $p1, Pesticide $p2): array
+    {
+        $warnings = [];
+
+        // Kiểm tra FRAC (Thuốc trừ bệnh)
+        $frac1 = trim($p1->frac_code ?? '');
+        $frac2 = trim($p2->frac_code ?? '');
+        if ($frac1 !== '' && $frac1 === $frac2) {
+            $profile = null;
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('resistance_profiles')) {
+                    $profile = \App\Models\ResistanceProfile::where('code_type', 'FRAC')
+                        ->where('code_value', $frac1)
+                        ->first();
+                }
+            } catch (\Throwable $e) {}
+
+            $warnings[] = [
+                'type' => 'FRAC',
+                'code' => $frac1,
+                'title' => "Cảnh báo luân phiên nấm bệnh: Cùng mã {$frac1}",
+                'mechanism' => $profile?->target_site_of_action ?? 'Cùng cơ chế tác động lên bào tử nấm',
+                'risk_level' => $profile?->risk_level ?? 'MEDIUM',
+                'cross_resistance_group' => $profile?->cross_resistance_group ?? 'Nhóm kháng chéo cùng họ hoạt chất',
+                'advice' => $profile?->rotation_advice ?? 'Không nên phối cùng mã kháng; nên luân phiên khác nhóm để ngăn ngừa nấm tạo áp lực đề kháng.',
+                'note' => 'Về mặt hóa lý bình phun, 2 thuốc có thể tan tốt không kết tủa, nhưng việc lạm dụng cùng lúc làm nấm nhanh chóng thích nghi kháng chéo.',
+            ];
+        }
+
+        // Kiểm tra IRAC (Thuốc trừ sâu rầy)
+        $irac1 = trim($p1->irac_code ?? '');
+        $irac2 = trim($p2->irac_code ?? '');
+        if ($irac1 !== '' && $irac1 === $irac2) {
+            $profile = null;
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('resistance_profiles')) {
+                    $profile = \App\Models\ResistanceProfile::where('code_type', 'IRAC')
+                        ->where('code_value', $irac1)
+                        ->first();
+                }
+            } catch (\Throwable $e) {}
+
+            $warnings[] = [
+                'type' => 'IRAC',
+                'code' => $irac1,
+                'title' => "Cảnh báo kháng thuốc sâu rầy: Cùng mã {$irac1}",
+                'mechanism' => $profile?->target_site_of_action ?? 'Cùng cơ chế tác động lên hệ thần kinh hoặc hô hấp côn trùng',
+                'risk_level' => $profile?->risk_level ?? 'HIGH',
+                'cross_resistance_group' => $profile?->cross_resistance_group ?? 'Nhóm kháng chéo côn trùng',
+                'advice' => $profile?->rotation_advice ?? 'Cần luân phiên với nhóm khác cơ chế (vd Neonicotinoid luân phiên với ức chế lột xác Buprofezin).',
+                'note' => 'Phối 2 thuốc trừ sâu cùng mã IRAC gây lãng phí chi phí thuốc và chọn lọc dòng sâu rầy kháng chéo.',
+            ];
+        }
+
+        return $warnings;
     }
 
     /**

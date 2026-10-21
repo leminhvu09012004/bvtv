@@ -11,6 +11,18 @@ class AdminVariantPriceEditTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $admin = \App\Models\User::create([
+            'name'     => 'Admin Price Test',
+            'email'    => 'admin.price@bvtv.vn',
+            'password' => bcrypt('password'),
+            'role'     => 'admin',
+        ]);
+        $this->actingAs($admin);
+    }
+
     private function taoDanhMuc(): Category
     {
         return Category::create([

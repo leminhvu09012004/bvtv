@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pesticide extends Model
 {
@@ -32,6 +33,10 @@ class Pesticide extends Model
         'registration_number',
         'isolation_period',
         'notes',
+        'frac_code',
+        'irac_code',
+        'hrac_code',
+        'chemical_group',
     ];
 
     protected $casts = [
@@ -471,6 +476,11 @@ class Pesticide extends Model
         return $this->belongsToMany(Disease::class, 'disease_pesticide');
     }
 
+    public function productVariants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
     /**
      * Scope for full-text search across key fields.
      *
@@ -489,10 +499,17 @@ class Pesticide extends Model
         }
 
         $trimmed = trim($keyword);
-        $words = array_values(array_filter(preg_split('/\s+/', $trimmed)));
+        $rawWords = array_values(array_filter(preg_split('/\s+/', $trimmed)));
 
-        if (empty($words)) {
+        if (empty($rawWords)) {
             return $query;
+        }
+
+        // Tách từ có ý nghĩa (loại bỏ ký tự gạch nối, dấu câu đứng riêng như –, —, -, /, +, ,)
+        $cleanText = preg_replace('/[^\p{L}\p{N}\s]+/u', ' ', $trimmed);
+        $words = array_values(array_filter(preg_split('/\s+/', $cleanText)));
+        if (empty($words)) {
+            $words = $rawWords;
         }
 
         $uniqueWords = array_values(array_unique($words));
@@ -550,14 +567,17 @@ class Pesticide extends Model
                         }
                     });
                 }
-            } elseif ($scope === 'all') {
-                // TÌM TẤT CẢ (Tên, hoạt chất, quy cách, công dụng, cây trồng):
+            } elseif ($scope === 'all' || $scope === null) {
+                // TÌM TẤT CẢ (Tên, hoạt chất, quy cách, công dụng, đối tượng sâu bệnh, cây trồng & Bệnh hại liên kết):
                 foreach ($phraseVariants as $pv) {
                     $q->orWhere('name', 'like', "%{$pv}%")
                         ->orWhere('active_ingredient', 'like', "%{$pv}%")
                         ->orWhere('usage', 'like', "%{$pv}%")
                         ->orWhere('target', 'like', "%{$pv}%")
-                        ->orWhere('crops', 'like', "%{$pv}%");
+                        ->orWhere('crops', 'like', "%{$pv}%")
+                        ->orWhereHas('diseases', function (Builder $dq) use ($pv) {
+                            $dq->where('name', 'like', "%{$pv}%");
+                        });
                 }
                 if (count($uniqueWords) > 1) {
                     $q->orWhere(function (Builder $allWords) use ($uniqueWords) {
@@ -565,26 +585,19 @@ class Pesticide extends Model
                             $allWords->where(function (Builder $sub) use ($w) {
                                 $sub->where('name', 'like', "%{$w}%")
                                     ->orWhere('active_ingredient', 'like', "%{$w}%")
+                                    ->orWhere('target', 'like', "%{$w}%")
                                     ->orWhere('usage', 'like', "%{$w}%")
                                     ->orWhere('crops', 'like', "%{$w}%");
                             });
                         }
                     });
-                }
-            } else {
-                // MẶC ĐỊNH (Khi không truyền scope): Tìm trên Tên và Hoạt chất
-                foreach ($phraseVariants as $pv) {
-                    $q->orWhere('name', 'like', "%{$pv}%")
-                        ->orWhere('active_ingredient', 'like', "%{$pv}%");
-                }
-                if (count($uniqueWords) > 1) {
-                    $q->orWhere(function (Builder $allWords) use ($uniqueWords) {
-                        foreach ($uniqueWords as $w) {
-                            $allWords->where(function (Builder $sub) use ($w) {
-                                $sub->where('name', 'like', "%{$w}%")
-                                    ->orWhere('active_ingredient', 'like', "%{$w}%");
-                            });
-                        }
+                    // Khớp theo tên bệnh hại liên kết nếu từ khóa chia nhiều từ (ví dụ "bã trầu", "tảo đỏ", "lở cổ rễ")
+                    $q->orWhereHas('diseases', function (Builder $dq) use ($uniqueWords) {
+                        $dq->where(function (Builder $allWords) use ($uniqueWords) {
+                            foreach ($uniqueWords as $w) {
+                                $allWords->where('name', 'like', "%{$w}%");
+                            }
+                        });
                     });
                 } elseif (count($words) > 1 && count($uniqueWords) === 1) {
                     $w = $words[0];

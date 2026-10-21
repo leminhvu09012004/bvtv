@@ -19,6 +19,18 @@ class DiseaseTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $admin = \App\Models\User::create([
+            'name'     => 'Admin Test',
+            'email'    => 'admin.disease@bvtv.vn',
+            'password' => bcrypt('password'),
+            'role'     => 'admin',
+        ]);
+        $this->actingAs($admin);
+    }
+
     // =========================================================================
     // Setup helpers
     // =========================================================================

@@ -16,6 +16,18 @@ class ThuocTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $admin = \App\Models\User::create([
+            'name'     => 'Admin Test',
+            'email'    => 'admin.thuoc@bvtv.vn',
+            'password' => bcrypt('password'),
+            'role'     => 'admin',
+        ]);
+        $this->actingAs($admin);
+    }
+
     // =========================================================================
     // Setup helpers
     // =========================================================================
@@ -450,5 +462,53 @@ class ThuocTest extends TestCase
         $respRep->assertStatus(200)
                 ->assertSee('Mospilan Đặc Trị Rệp Sáp')
                 ->assertDontSee('Humic Kích Rễ Cực Mạnh');
+    }
+
+    /** Test: Trang chủ đã xóa section Danh Mục Thuốc Nông Nghiệp và có thanh lọc sản phẩm */
+    public function test_trang_chu_da_xoa_danh_muc_va_co_thanh_loc_san_pham(): void
+    {
+        $resp = $this->get(route('home'));
+        $resp->assertStatus(200);
+        $resp->assertDontSee('Phân loại khoa học');
+        $resp->assertDontSee('Danh Mục Thuốc Nông Nghiệp');
+        $resp->assertSee('Lọc theo danh mục:');
+        $resp->assertSee('Tất cả dạng thuốc');
+        $resp->assertSee('Chỉ hàng có sẵn');
+    }
+
+    /** Test: Trang tra cứu có đầy đủ bộ lọc đa tiêu chí */
+    public function test_trang_tra_cuu_co_day_du_bo_loc_da_tieu_chi(): void
+    {
+        $cat = $this->taoDanhMuc('Thuốc sinh học');
+        $this->taoThuoc($cat, ['name' => 'Thuốc Test Lọc']);
+
+        $resp = $this->get(route('thuoc.tra-cuu'));
+        $resp->assertStatus(200);
+        $resp->assertSee('Tất cả dạng thuốc');
+        $resp->assertSee('Tất cả mức giá');
+        $resp->assertSee('Chỉ hàng có sẵn');
+        $resp->assertSee('Đặt lại bộ lọc');
+    }
+
+    /** Test: Form nhập CSV và xử lý nhập CSV */
+    public function test_nhap_csv_thuoc(): void
+    {
+        $cat = $this->taoDanhMuc('Danh mục Import CSV');
+
+        $this->get(route('thuoc.nhap-csv'))->assertStatus(200);
+
+        $csvContent = "\xEF\xBB\xBFSTT,Danh mục,Tên thuốc,Hoạt chất,Hàm lượng,Công dụng,Đối tượng,Cây trồng,Dạng,NSX,SĐK,Cách ly,Ghi chú\n";
+        $csvContent .= "1,{$cat->name},Thuốc Nhập File CSV,Hoạt chất Test,500g,Trị sâu,Sâu tơ,Bắp cải,WP,CTY A,1234,7 ngày,Ghi chú test\n";
+
+        $file = UploadedFile::fake()->createWithContent('thuoc.csv', $csvContent);
+
+        $response = $this->post(route('thuoc.nhap-csv.luu'), [
+            'csv_file' => $file,
+        ]);
+
+        $response->assertRedirect(route('thuoc.quan-ly'));
+        $this->assertDatabaseHas('pesticides', [
+            'name' => 'Thuốc Nhập File CSV',
+        ]);
     }
 }

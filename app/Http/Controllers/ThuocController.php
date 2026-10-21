@@ -19,7 +19,7 @@ class ThuocController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Pesticide::with('category')->search($request->input('q'));
+        $query = Pesticide::with(['category', 'productVariants.inventories', 'diseases'])->search($request->input('q'));
 
         $selectedCategoryId = $request->input('category_id');
         $selectedCategorySlug = $request->input('category');
@@ -184,7 +184,7 @@ class ThuocController extends Controller
 
     public function xem(Pesticide $pesticide): View
     {
-        $pesticide->load(['category', 'diseases']);
+        $pesticide->load(['category', 'diseases', 'productVariants.inventories.warehouse']);
         $mixingService = app(\App\Services\MixingCompatibilityService::class);
         $mixingInfo = $mixingService->getIncompatibilitiesForPesticide($pesticide);
 
@@ -524,7 +524,7 @@ class ThuocController extends Controller
                 'danh_muc' => $p->category?->name,
                 'danh_muc_emoji' => $p->category?->emoji,
                 'danh_muc_slug' => $p->category?->slug,
-                'url_xem' => route('thuoc.xem', [$p, 'admin' => 1]),
+                'url_xem' => route('thuoc.xem', $p),
                 'url_sua' => route('thuoc.sua', [$p, 'from' => 'quan-ly']),
                 'url_xoa' => route('ajax.xoa', $p),
             ]);
@@ -569,6 +569,47 @@ class ThuocController extends Controller
                 'danh_muc_slug' => $pesticide->category?->slug,
                 'url_xem' => route('thuoc.xem', $pesticide),
                 'url_sua' => route('thuoc.sua', $pesticide),
+                'url_xoa' => route('ajax.xoa', $pesticide),
+            ],
+        ]);
+    }
+
+    /**
+     * Cập nhật nhanh thuốc qua AJAX PUT — trả về JSON.
+     */
+    public function ajaxCapNhatNhanh(Request $request, Pesticide $pesticide): JsonResponse
+    {
+        $validated = $request->validate([
+            'category_id' => ['required', 'exists:categories,id'],
+            'name' => ['required', 'string', 'max:191'],
+            'active_ingredient' => ['nullable', 'string', 'max:191'],
+            'concentration' => ['nullable', 'string', 'max:191'],
+            'water_volume' => ['nullable', 'string', 'max:191'],
+            'usage' => ['nullable', 'string'],
+            'crops' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $pesticide->update($validated);
+        $pesticide->load('category');
+
+        return response()->json([
+            'success' => true,
+            'thong_bao' => 'Đã cập nhật thuốc "' . $pesticide->name . '" thành công!',
+            'thuoc' => [
+                'id' => $pesticide->id,
+                'ten' => $pesticide->name,
+                'image_url' => $pesticide->image_url,
+                'hoat_chat' => $pesticide->active_ingredient,
+                'ham_luong' => $pesticide->concentration,
+                'water_volume' => $pesticide->water_volume,
+                'cong_dung' => $pesticide->usage,
+                'cay_trong' => $pesticide->crops,
+                'danh_muc' => $pesticide->category?->name,
+                'danh_muc_emoji' => $pesticide->category?->emoji,
+                'danh_muc_slug' => $pesticide->category?->slug,
+                'url_xem' => route('thuoc.xem', $pesticide),
+                'url_sua' => route('thuoc.sua', [$pesticide, 'from' => 'quan-ly']),
                 'url_xoa' => route('ajax.xoa', $pesticide),
             ],
         ]);
